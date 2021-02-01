@@ -8,10 +8,10 @@ import java.util.*;
  */
 public class Floor {
 
-	private Stack<FloorEvent> eventStack = new Stack();
+	private Queue<FloorEvent> eventList = new LinkedList<FloorEvent>();
 	
 	
-	public synchronized void put(FloorEvent[] newFoods) {
+	public synchronized void put(FloorEvent[] events) {
 		while (!isEmpty()) {
 			try {
 				wait();
@@ -20,18 +20,18 @@ public class Floor {
 			}
 		}
 		
-		for (int i = 0; i < newFoods.length; ++i) {
-			if (newFoods[i] == null) {
-				throw new IllegalArgumentException("Cannot have a null food!!");
+		for (int i = 0; i < events.length; ++i) {
+			if (events[i] == null) {
+				throw new IllegalArgumentException("Cannot have a null event!!");
 			}
+			eventList.add(events[i]);
 		}
 		
-		System.arraycopy(newFoods, 0, foods, 0, FOOD_COUNT);
 		notifyAll();
 	}
 	
 	
-	public synchronized Food[] peek() {
+	public synchronized FloorEvent peek() {
 		while (isEmpty()) {
 			try {
 				wait();
@@ -39,11 +39,11 @@ public class Floor {
 				System.err.println(e.getMessage());
 			}
 		}
-		return Arrays.copyOf(foods, FOOD_COUNT);
+		return eventList.peek();
 	}
 	
 	
-	public synchronized Food[] take() {
+	public synchronized FloorEvent pop() {
 		while (isEmpty()) {
 			try {
 				wait();
@@ -52,21 +52,18 @@ public class Floor {
 			}
 		}
 		
-		Food[] res = Arrays.copyOf(foods, FOOD_COUNT);
 		clear();
-		return res;
+		return eventList.remove();
 	}
 	
 	
 	public synchronized boolean isEmpty() {
-		return foods[0] == null; // if first food is null, all are null
+		return eventList.isEmpty();
 	}
 	
 	
 	private synchronized void clear() {
-		for (int i = 0; i < foods.length; ++i) {
-			foods[i] = null;
-		}
+		eventList.clear();
 		notifyAll();
 	}
 	

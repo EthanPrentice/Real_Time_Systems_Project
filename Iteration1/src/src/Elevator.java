@@ -1,3 +1,4 @@
+package src;
 
 public class Elevator implements Runnable{     //Creates a new elevator
 	static int id;    //for additional elevators
