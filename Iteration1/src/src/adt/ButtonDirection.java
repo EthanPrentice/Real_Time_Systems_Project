@@ -9,7 +9,6 @@ public enum ButtonDirection {
 	DOWN;
 	
 	/**
-	 * 
 	 * @param name the name of the ButtonDirection to return
 	 * @return the ButtonDirection associated with the name parameter.  If no such ButtonDirection exists, return null.
 	 */

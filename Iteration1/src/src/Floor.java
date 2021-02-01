@@ -19,30 +19,30 @@ public class Floor {
 	 */
 	public synchronized void readFromFile(File file) {
 		Scanner reader = null;
-	    try {
-	        reader = new Scanner(file);
-	        
-	        while (reader.hasNextLine()) {
-	        	String line = reader.nextLine();
-	        	try {
-	        		eventList.add(FloorEvent.parseFromString(line));
-	        		notifyAll();
-	        	} catch (IllegalArgumentException e) {
-	        		System.err.print(e.getMessage());
-	        		e.printStackTrace();
-	        	}
-	        }
-	        
-	    } catch (FileNotFoundException e) {
-	    	System.err.println("Could not read from file.");
-	    	e.printStackTrace();
-	    	
-	    } finally {
-	    	if (reader != null) {
-	    		reader.close();
-	    	}
-	    }
-
+		try {
+			reader = new Scanner(file);
+			
+			while (reader.hasNextLine()) {
+				String line = reader.nextLine();
+				try {
+					eventList.add(FloorEvent.parseFromString(line));
+					notifyAll();
+				} catch (IllegalArgumentException e) {
+					System.err.print(e.getMessage());
+					e.printStackTrace();
+				}
+			}
+			
+		} catch (FileNotFoundException e) {
+			System.err.println("Could not read from file.");
+			e.printStackTrace();
+			
+		} finally {
+			if (reader != null) {
+				reader.close();
+			}
+		}
+		
 	}
 	
 	/**
