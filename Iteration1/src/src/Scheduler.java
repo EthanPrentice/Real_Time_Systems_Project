@@ -15,20 +15,20 @@ import src.adt.*;
  */
 public class Scheduler implements Runnable{
 	
-	private Queue<FloorEvent> eventQueue = new LinkedList<FloorEvent>();
+	private Queue<Event> eventQueue = new LinkedList<Event>();
 	private Floor floor;
 	
 	public Scheduler(Floor floor) {
 		this.floor = floor;
 	}
 	
-	public void putEventFromFloor(FloorEvent event) {
+	public void putEventFromFloor(Event event) {
 		eventQueue.add(event);
 		System.out.println("Scheduler: Recieved event from Floor. Event: " + event.toString());
 		notify();
 	}
 	
-	public synchronized FloorEvent getEvent() {
+	public synchronized Event getEvent() {
 		while(eventQueue.isEmpty()) {
 			wait();
 		}
@@ -36,7 +36,7 @@ public class Scheduler implements Runnable{
 		return eventQueue.remove();
 	}
 	
-	public void sendEventToFloor(FloorEvent event) {
+	public void sendEventToFloor(Event event) {
 		System.out.println("Scheduler: Recieved Event From Elevator. Event: " + event.toString());
 		floor.put(event);
 	}

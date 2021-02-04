@@ -4,7 +4,7 @@ import java.util.*;
 import java.io.*;
 import java.lang.Runnable;
 
-import src.adt.FloorEvent;
+import src.adt.Event;
 
 /**
  * Written for SYSC3303 - Group 6 - Iteration 1 @ Carleton University
@@ -33,7 +33,7 @@ public class Floor implements Runnable {
 	 * Receives event and prints it
 	 * @param event
 	 */
-	public synchronized void put(FloorEvent event) {
+	public synchronized void put(Event event) {
 		System.out.println("Floor: Received event. Event: " + event.toString());
 	}
 	
@@ -54,7 +54,7 @@ public class Floor implements Runnable {
 			while (reader.hasNextLine()) {
 				String line = reader.nextLine();
 				try {
-					FloorEvent event = FloorEvent.parseFromString(line);
+					Event event = Event.parseFromString(line);
 					
 					// sleep to simulate real time events
 					Thread.sleep(1000L); // wait 1000ms, TODO: change this timing to be timing in file

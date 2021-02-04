@@ -9,14 +9,14 @@ import java.util.*;
  * Written for SYSC3303 - Group 6 - Iteration 1 @ Carleton University
  * @author Ethan Prentice (101070194)
  */
-public class FloorEvent {
+public class Event {
 	private LocalTime reqTime;
 	private int floorNum;
 	private ButtonDirection btnDirection;
 	private int carBtn;
 	
 	
-	public FloorEvent(LocalTime reqTime, int floorNum, ButtonDirection btnDirection, int carBtn) {
+	public Event(LocalTime reqTime, int floorNum, ButtonDirection btnDirection, int carBtn) {
 		this.reqTime = reqTime;
 		this.floorNum = floorNum;
 		this.btnDirection = btnDirection;
@@ -63,7 +63,7 @@ public class FloorEvent {
 	 * @exception IllegalArgumentException if the string cannot be parsed
 	 * @return a FloorEvent with the parsed values of s
 	 */
-	public static FloorEvent parseFromString(String s) throws IllegalArgumentException {	
+	public static Event parseFromString(String s) throws IllegalArgumentException {	
 		String[] args = s.split("\\s+");
 		if (args.length != 4) {
 			throw new IllegalArgumentException("Input string has inproper formatting.  Must include 4 variables. (" + s + ")");
@@ -97,6 +97,6 @@ public class FloorEvent {
 			throw new IllegalArgumentException("Car button could not be parsed from input string. (" + s + ")");
 		}
 		
-		return new FloorEvent(reqTime, floorNum, btnDirection, carBtn);
+		return new Event(reqTime, floorNum, btnDirection, carBtn);
 	}
 }
