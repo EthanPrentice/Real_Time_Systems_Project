@@ -30,6 +30,9 @@ public class Scheduler implements Runnable{
 	
 	public synchronized Event getEvent() {
 		while(eventQueue.isEmpty()) {
+			if(!floor.hasMoreEvents()) {
+				System.exit(0);
+			}
 			wait();
 		}
 		System.out.println("Scheduler: Sent event to Elevator. Event: " + eventQueue.peek().toString());
@@ -41,8 +44,9 @@ public class Scheduler implements Runnable{
 		floor.put(event);
 	}
 
-	@Override
-	public void run() {
+	public static void main(String[] args) {
+		//create threads
+		//start threads
 	}
 
 }
