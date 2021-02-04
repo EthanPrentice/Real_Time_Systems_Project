@@ -12,7 +12,7 @@ import src.adt.FloorEvent;
  */
 public class Floor implements Runnable {
 	
-	Scheduler scheduler;	
+	private Scheduler scheduler;	
 	
 	@Override
 	public void run() {
@@ -21,11 +21,17 @@ public class Floor implements Runnable {
 		readFromFile(file);
 	}
 	
+	
+	public void setScheduler(Scheduler scheduler) {
+		this.scheduler = scheduler;
+	}
+	
+	
 	/**
 	 * Receives event and prints it to the string
 	 * @param event
 	 */
-	public void put(FloorEvent event) {
+	public synchronized void put(FloorEvent event) {
 		System.out.println(event.toString());
 	}
 	
@@ -34,7 +40,7 @@ public class Floor implements Runnable {
 	 * Reads in FloorEvents from a formatted input file, notifying any waiting threads on each event parsed
 	 * @param file : the file to read the events from
 	 */
-	public synchronized void readFromFile(File file) {
+	private void readFromFile(File file) {
 		Scanner reader = null;
 		try {
 			reader = new Scanner(file);
