@@ -28,11 +28,11 @@ public class Floor implements Runnable {
 	
 	
 	/**
-	 * Receives event and prints it to the string
+	 * Receives event and prints it
 	 * @param event
 	 */
 	public synchronized void put(FloorEvent event) {
-		System.out.println(event.toString());
+		System.out.println("Floor: Received event. Event: " + event.toString());
 	}
 	
 	
@@ -55,6 +55,7 @@ public class Floor implements Runnable {
 					} catch (InterruptedException e) {
 						System.err.print(e.getMessage());
 					}
+					System.out.println("Floor: Sent event to Scheduler. Event: " + event.toString());
 					scheduler.put(event);
 				} catch (IllegalArgumentException e) {
 					System.err.print(e.getMessage());
