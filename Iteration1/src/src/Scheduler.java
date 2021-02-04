@@ -3,7 +3,6 @@
  */
 package src;
 
-import java.util.*;
 import java.util.LinkedList;
 import java.util.Queue;
 
@@ -13,7 +12,7 @@ import src.adt.*;
  * @author noell
  *
  */
-public class Scheduler implements Runnable{
+public class Scheduler{
 	
 	private Queue<Event> eventQueue = new LinkedList<Event>();
 	private Floor floor;
@@ -33,7 +32,12 @@ public class Scheduler implements Runnable{
 			if(!floor.hasMoreEvents()) {
 				System.exit(0);
 			}
-			wait();
+			
+			try {
+				wait();
+			} catch (InterruptedException e) {
+				System.err.println(e.getMessage());
+			}
 		}
 		System.out.println("Scheduler: Sent event to Elevator. Event: " + eventQueue.peek().toString());
 		return eventQueue.remove();
