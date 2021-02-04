@@ -15,6 +15,9 @@ public class Floor implements Runnable {
 	private Scheduler scheduler;
 	boolean hasMoreEvents = false;
 	
+	/** Used to generate the random intervals between events */
+	private Random rand = new Random();
+	
 	
 	@Override
 	public void run() {
@@ -56,8 +59,9 @@ public class Floor implements Runnable {
 				try {
 					Event event = Event.parseFromString(line);
 					
-					// sleep to simulate real time events
-					Thread.sleep(1000L); // wait 1000ms, TODO: change this timing to be timing in file
+					// sleep to simulate real time events (between 1 and 3 seconds)
+					Long sleepMs = 1000L * (rand.nextInt(3) + 1);
+					Thread.sleep(sleepMs); // TODO: change this timing to be timing in file
 					
 					System.out.println("Floor: Sent event to Scheduler. Event: " + event.toString());
 					scheduler.putEventFromFloor(event);
