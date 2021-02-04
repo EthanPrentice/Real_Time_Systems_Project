@@ -12,7 +12,9 @@ import src.adt.FloorEvent;
  */
 public class Floor implements Runnable {
 	
-	private Scheduler scheduler;	
+	private Scheduler scheduler;
+	boolean hasMoreEvents = false;
+	
 	
 	@Override
 	public void run() {
@@ -45,21 +47,26 @@ public class Floor implements Runnable {
 		try {
 			reader = new Scanner(file);
 			
+			if (reader.hasNextLine()) {
+				hasMoreEvents = true;
+			}
+			
 			while (reader.hasNextLine()) {
 				String line = reader.nextLine();
 				try {
 					FloorEvent event = FloorEvent.parseFromString(line);
-					try {
-						// sleep to simulate real time events
-						Thread.sleep(1000L); // wait 1000ms, TODO: change this timing to be timing in file
-					} catch (InterruptedException e) {
-						System.err.print(e.getMessage());
-					}
+					
+					// sleep to simulate real time events
+					Thread.sleep(1000L); // wait 1000ms, TODO: change this timing to be timing in file
+					
 					System.out.println("Floor: Sent event to Scheduler. Event: " + event.toString());
-					scheduler.put(event);
+					scheduler.putEventFromFloor(event);
+					
 				} catch (IllegalArgumentException e) {
 					System.err.print(e.getMessage());
 					e.printStackTrace();
+				} catch (InterruptedException e) {
+					System.err.print(e.getMessage());
 				}
 			}
 			
@@ -71,8 +78,16 @@ public class Floor implements Runnable {
 			if (reader != null) {
 				reader.close();
 			}
+			hasMoreEvents = false;
 		}
 		
+	}
+	
+	/**
+	 * @return whether the file being read has events left
+	 */
+	public boolean hasMoreEvents() {
+		return hasMoreEvents;
 	}
 	
 }
