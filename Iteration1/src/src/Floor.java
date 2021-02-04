@@ -2,6 +2,7 @@ package src;
 
 import java.util.*;
 import java.io.*;
+import java.lang.Runnable;
 
 import src.adt.FloorEvent;
 
@@ -9,9 +10,25 @@ import src.adt.FloorEvent;
  * Written for SYSC3303 - Group 6 - Iteration 1 @ Carleton University
  * @author Ethan Prentice (101070194)
  */
-public class Floor {
-
-	private Queue<FloorEvent> eventList = new LinkedList<FloorEvent>();
+public class Floor implements Runnable {
+	
+	Scheduler scheduler;	
+	
+	@Override
+	public void run() {
+		// hard code file location for now
+		File file = new File("res/test_data.txt");
+		readFromFile(file);
+	}
+	
+	/**
+	 * Receives event and prints it to the string
+	 * @param event
+	 */
+	public void put(FloorEvent event) {
+		System.out.println(event.toString());
+	}
+	
 	
 	/**
 	 * Reads in FloorEvents from a formatted input file, notifying any waiting threads on each event parsed
@@ -25,8 +42,14 @@ public class Floor {
 			while (reader.hasNextLine()) {
 				String line = reader.nextLine();
 				try {
-					eventList.add(FloorEvent.parseFromString(line));
-					notifyAll();
+					FloorEvent event = FloorEvent.parseFromString(line);
+					try {
+						// sleep to simulate real time events
+						Thread.sleep(1000L); // wait 1000ms, TODO: change this timing to be timing in file
+					} catch (InterruptedException e) {
+						System.err.print(e.getMessage());
+					}
+					scheduler.put(event);
 				} catch (IllegalArgumentException e) {
 					System.err.print(e.getMessage());
 					e.printStackTrace();
@@ -43,45 +66,6 @@ public class Floor {
 			}
 		}
 		
-	}
-	
-	/**
-	 * Returns the oldest stored FloorEvent without removing it from the queue
-	 * 
-	 * @return the oldest stored FloorEvent
-	 */
-	public synchronized FloorEvent peek() {
-		while (isEmpty()) {
-			try {
-				wait();
-			} catch (InterruptedException e) {
-				System.err.println(e.getMessage());
-			}
-		}
-		return eventList.peek();
-	}
-	
-	
-	/**
-	 * Returns the oldest stored FloorEvent and removes it from the queue
-	 * 
-	 * @return the oldest stored FloorEvent
-	 */
-	public synchronized FloorEvent pop() {
-		while (isEmpty()) {
-			try {
-				wait();
-			} catch (InterruptedException e) {
-				System.err.println(e.getMessage());
-			}
-		}
-		
-		return eventList.remove();
-	}
-	
-	
-	public synchronized boolean isEmpty() {
-		return eventList.isEmpty();
 	}
 	
 }
