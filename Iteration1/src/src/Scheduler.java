@@ -74,6 +74,14 @@ public class Scheduler{
 	}
 	
 	/**
+	 * Elevator data getter method
+	 * @return last event object received from elevator
+	 */
+	public Event getElevatorEvent() {
+		return this.elevatorEvent;
+	}
+	
+	/**
 	 * Main Thread, creates Scheduler and starts Floor and Elevator Threads
 	 * @param args
 	 */
@@ -91,12 +99,6 @@ public class Scheduler{
 		elevThread.start();
 	}
 	
-	/*
-	 * Elevator data getter method
-	 * @return last event object received from elevator
-	 */
-	public Event getElevatorEvent() {
-		return this.elevatorEvent;
-	}
+
 
 }

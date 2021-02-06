@@ -145,7 +145,7 @@ class TestCase {
 		
 	}
 	
-	/*
+	/**
 	 * Tests the data sent to the scheduler by the elevator
 	 */
 	@Test
