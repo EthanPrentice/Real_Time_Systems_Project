@@ -7,9 +7,6 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.time.LocalTime;
 
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -64,7 +61,7 @@ class TestCase {
 	 * Tests the data passed from the floor to the scheduler
 	 */
 	@Test
-	void testFloorSend() {
+	void testSchedulerReceive() {
 		
 		floorThread.start();
 		while(floorThread.isAlive());
@@ -95,7 +92,7 @@ class TestCase {
 	}
 	
 	/**
-	 * Tests the data received by the elevator. This is ALWAYS the data sent back to the scheduler
+	 * Tests the data received by the elevator from the scheduler. This is ALWAYS the same data sent back to the scheduler
 	 */
 	@Test
 	void testElevatorReceive() {
