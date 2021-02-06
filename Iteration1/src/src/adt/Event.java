@@ -58,6 +58,20 @@ public class Event {
 	// End of getters
 	
 	
+	@Override
+	public boolean equals(Object o) {
+		if (o instanceof Event) {
+			Event e = (Event) o;
+			return reqTime.equals(e.reqTime)
+				&& floorNum == e.floorNum
+				&& btnDirection.equals(e.btnDirection)
+				&& carBtn == e.carBtn;
+		} else {
+			return false;
+		}
+	}
+	
+	
 	/**
 	 * @param s : an input string of the format: "{hh:mm:ss.mmm} {int} {up|down} {int}".
 	 * 			: in order these are time, floor, direction, car button
