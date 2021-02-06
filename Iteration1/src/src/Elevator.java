@@ -4,10 +4,12 @@ import src.adt.*;
 import java.lang.Thread;
 /**
  * Written for SYSC3303 - Group 6 - Iteration 1 @ Carleton University
- * @author Nikhil Kharbanda
+ * Creates and runs the elevator sub-system as a thread. Here, the elevator thread gets and displays an event from scheduler, then sends the event back to scheduler
+ * @author Nikhil Kharbanda 101012041
  */
 
-public class Elevator implements Runnable{     //Creates a new elevator
+
+public class Elevator implements Runnable{     
 
 	private Scheduler scheduler;
 	private Event event;
@@ -15,28 +17,35 @@ public class Elevator implements Runnable{     //Creates a new elevator
 	private boolean isRunning = true;
 
 	/**
-	 * Gets event from the Scheduler and then sends event back to the Scheduler
+	 * Runs the thread. Gets event from the Scheduler and then sends event back to the Scheduler
 	 */
 	public void run() {
-		while(isRunning) {
+		while(isRunning) {         //while elevator is running
 			event = scheduler.getEvent();
-			System.out.println("Elevator: Received " + event.toString() + " from scheduler...");
+			System.out.println("Elevator: Recieved Event From Scheduler. Event: " + event.toString());    //gets an event from scheduler and prints event out
 
 			try {
-				Thread.sleep(1000);
+				Thread.sleep(1000);           //sleep for 1 second
 			} catch (InterruptedException e) {
 				System.err.println(e.getMessage());
 			}
 
-			System.out.println("Elevator: Sending " + event.toString() + " to scheduler...");
+			System.out.println("Elevator: Sent Event to Scheduler. Event: " + event.toString());          //sends an event to scheduler and prints event being sent
 			scheduler.sendEventToFloor(event);
 		}
 	}
 
+	/**
+	 * Setter method for scheduler
+	 * @param s
+	 */
 	public void setScheduler(Scheduler s) {
 		scheduler = s;
 	}
 
+	/**
+	 * sets the isRunning value to false. Simulates the elevator not running
+	 */
 	public void stop() {
 		isRunning = false;
 	}
