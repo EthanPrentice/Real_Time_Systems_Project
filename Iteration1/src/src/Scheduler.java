@@ -15,6 +15,7 @@ public class Scheduler{
 	private Queue<Event> eventQueue = new LinkedList<Event>();
 	private Floor floor;
 	private Elevator elevator;
+	private Event elevatorEvent;
 	
 	/**
 	 * Constructor, saves references to the floor and elevator
@@ -66,6 +67,7 @@ public class Scheduler{
 	 * @param event
 	 */
 	public void sendEventToFloor(Event event) {
+		elevatorEvent = event;
 		System.out.println("Scheduler: Recieved Event From Elevator. Event: " + event.toString());
 		System.out.println("Scheduler: Sent Event to Floor. Event: " + event.toString());
 		floor.put(event);
@@ -87,6 +89,14 @@ public class Scheduler{
 		Thread elevThread = new Thread(elevator, "Elevator");
 		floorThread.start();
 		elevThread.start();
+	}
+	
+	/*
+	 * Elevator data getter method
+	 * @return last event object received from elevator
+	 */
+	public Event getElevatorEvent() {
+		return this.elevatorEvent;
 	}
 
 }

@@ -66,6 +66,7 @@ class TestCase {
 		floorThread.start();
 		while(floorThread.isAlive());
 		
+		//All three expected test events
 		Event testEvent1 = new Event(LocalTime.parse("14:05:15.0"), 2, ButtonDirection.UP, 4);
 		Event testEvent2 = new Event(LocalTime.parse("14:06:10.0"), 3, ButtonDirection.DOWN, 1);
 		Event testEvent3 = new Event(LocalTime.parse("15:06:10.0"), 1, ButtonDirection.UP, 4);
@@ -92,7 +93,7 @@ class TestCase {
 	}
 	
 	/**
-	 * Tests the data received by the elevator from the scheduler. This is ALWAYS the same data sent back to the scheduler
+	 * Tests the data received by the elevator from the scheduler
 	 */
 	@Test
 	void testElevatorReceive() {
@@ -120,7 +121,7 @@ class TestCase {
 		elevatorThread.start();
 		while(floorThread.isAlive() || elevatorThread.isAlive());
 		
-		Event testEvent = new Event(LocalTime.parse("15:06:10.0"), 1, ButtonDirection.UP, 4); //The expected last parsed Event object
+		Event testEvent = new Event(LocalTime.parse("15:06:10.0"), 1, ButtonDirection.UP, 4); //The expected last received Event object
 		Event getEvent = floor.getLastReceived();
 		
 		assertEquals(getEvent.getRequestTime(), testEvent.getRequestTime());
@@ -128,6 +129,24 @@ class TestCase {
 		assertEquals(getEvent.getDirection(), testEvent.getDirection());
 		assertEquals(getEvent.getCarButton(), testEvent.getCarButton());
 		
+	}
+	
+	/*
+	 * Tests the data sent to the scheduler by the elevator
+	 */
+	@Test
+	void testElevatorSend() {
+		floorThread.start();
+		elevatorThread.start();
+		while(floorThread.isAlive() || elevatorThread.isAlive());
+		
+		Event testEvent = new Event(LocalTime.parse("15:06:10.0"), 1, ButtonDirection.UP, 4); //The expected last received Event object
+		Event getEvent = scheduler.getElevatorEvent();
+		
+		assertEquals(getEvent.getRequestTime(), testEvent.getRequestTime());
+		assertEquals(getEvent.getFloorNum(), testEvent.getFloorNum());
+		assertEquals(getEvent.getDirection(), testEvent.getDirection());
+		assertEquals(getEvent.getCarButton(), testEvent.getCarButton());
 	}
 		
 }
