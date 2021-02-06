@@ -28,7 +28,7 @@ public class Elevator implements Runnable{     //Creates a new elevator
 			
 			Event progress = sch.getEvent();
 			
-			System.out.println("Elevator: Received " + progress.toString() + " from scheduler...");
+			System.out.println("Elevator: Received Event from Scheduler. Event: " + progress.toString());
 			
 			try {
 				Thread.sleep(1000);
@@ -37,8 +37,9 @@ public class Elevator implements Runnable{     //Creates a new elevator
 				
 			}
 			
+			System.out.println("Elevator: Sent Event to Scheduler. Event: " + progress.toString());
 			sch.sendEventToFloor(progress);
-			System.out.println("Elevator: Sending " + progress.toString() + " to scheduler...");
+			
 			
 		
 		}
