@@ -49,8 +49,19 @@ public class Scheduler{
 	}
 
 	public static void main(String[] args) {
-		//create threads
-		//start threads
+		Thread floor, elev;
+		
+		floor = new Thread(new Floor(), "floor");
+		
+		Scheduler sch = new Scheduler(floor);
+		
+		elev = new Thread(new Elevator(sch), "elv");
+		
+		floor.setScheduler(sch);
+		
+		floor.start();
+		elev.start();
+		
 	}
 
 }
