@@ -9,6 +9,8 @@ import src.adt.Event;
 /**
  * Written for SYSC3303 - Group 6 - Iteration 1 @ Carleton University
  * @author Ethan Prentice (101070194)
+ * 
+ * Simulates the real-time generation of Events by reading them from a file and sending them to the scheduler at varying intervals
  */
 public class Floor implements Runnable {
 	
@@ -64,6 +66,13 @@ public class Floor implements Runnable {
 					Thread.sleep(sleepMs); // TODO: change this timing to be timing in file
 					
 					System.out.println("Floor: Sent event to Scheduler. Event: " + event.toString());
+					
+					// Set hasMoreEvents before the last call to scheduler.putEventFromFloor
+					// Prevents elevator deadlock in the case Scheduler calls hasMoreEvents() in-between calls to putEventFromFloor and setting hasMoreEvents to false
+					if (!reader.hasNextLine()) {
+						hasMoreEvents = false;
+					}
+					
 					scheduler.putEventFromFloor(event);
 					
 				} catch (IllegalArgumentException e) {
@@ -82,7 +91,6 @@ public class Floor implements Runnable {
 			if (reader != null) {
 				reader.close();
 			}
-			hasMoreEvents = false;
 		}
 		
 	}

@@ -16,9 +16,11 @@ public class Scheduler{
 	
 	private Queue<Event> eventQueue = new LinkedList<Event>();
 	private Floor floor;
+	private Elevator elevator;
 	
-	public Scheduler(Floor floor) {
+	public Scheduler(Floor floor, Elevator elevator) {
 		this.floor = floor;
+		this.elevator = elevator;
 	}
 	
 	public synchronized void putEventFromFloor(Event event) {
@@ -28,17 +30,19 @@ public class Scheduler{
 	}
 	
 	public synchronized Event getEvent() {
-		while(eventQueue.isEmpty()) {
-			if(!floor.hasMoreEvents()) {
-				System.exit(0);
-			}
-			
+		while(eventQueue.isEmpty()) {		
 			try {
 				wait();
 			} catch (InterruptedException e) {
 				System.err.println(e.getMessage());
 			}
 		}
+		
+		// This is the last event in the scheduler queue, and the floor has no more events.
+		if(eventQueue.size() == 1 && !floor.hasMoreEvents()) {
+			elevator.stop();
+		}
+		
 		System.out.println("Scheduler: Sent event to Elevator. Event: " + eventQueue.peek().toString());
 		return eventQueue.remove();
 	}
@@ -50,12 +54,14 @@ public class Scheduler{
 
 	public static void main(String[] args) {
 		Floor floor = new Floor();
-		Scheduler scheduler = new Scheduler(floor);
-		floor.setScheduler(scheduler);
-		Elevator elevator = new Elevator(scheduler);
+		Elevator elevator = new Elevator();
+		Scheduler scheduler = new Scheduler(floor, elevator);
 		
-		Thread floorThread = new Thread(floor);
-		Thread elevThread = new Thread(elevator);
+		floor.setScheduler(scheduler);
+		elevator.setScheduler(scheduler);
+		
+		Thread floorThread = new Thread(floor, "Floor");
+		Thread elevThread = new Thread(elevator, "Elevator");
 		floorThread.start();
 		elevThread.start();
 	}

@@ -8,6 +8,8 @@ import java.util.*;
 /**
  * Written for SYSC3303 - Group 6 - Iteration 1 @ Carleton University
  * @author Ethan Prentice (101070194)
+ * 
+ * Data class representation of the events read in from the data file
  */
 public class Event {
 	private LocalTime reqTime;

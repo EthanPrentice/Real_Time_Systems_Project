@@ -5,33 +5,32 @@ import java.lang.Thread;
 
 public class Elevator implements Runnable{     //Creates a new elevator
 	
-	private Scheduler sch;
-
+	private Scheduler scheduler;
 	
-	public Elevator(Scheduler sch) {
-		this.sch = sch;
-	}
+	private boolean isRunning = true;
 	
 	public void run() {
-		boolean running = true;
-		while(running) {
-			
-			Event progress = sch.getEvent();
-			
+		while(isRunning) {
+			Event progress = scheduler.getEvent();
 			System.out.println("Elevator: Received " + progress.toString() + " from scheduler...");
 			
 			try {
 				Thread.sleep(1000);
 			} catch (InterruptedException e) {
 				System.err.println(e.getMessage());
-				
 			}
 			
-			sch.sendEventToFloor(progress);
 			System.out.println("Elevator: Sending " + progress.toString() + " to scheduler...");
-			
-		
+			scheduler.sendEventToFloor(progress);
 		}
+	}
+	
+	public void setScheduler(Scheduler s) {
+		scheduler = s;
+	}
+	
+	public void stop() {
+		isRunning = false;
 	}
 }
 
