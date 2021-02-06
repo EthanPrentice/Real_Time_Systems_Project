@@ -41,6 +41,10 @@ public class Elevator implements Runnable{     //Creates a new elevator
 		isRunning = false;
 	}
 	
+	/**
+	 * Event getter method
+	 * @return the last event object received from the scheduler
+	 */
 	public Event getEvent() {
 		return this.event;
 	}
