@@ -21,7 +21,7 @@ public class Scheduler{
 		this.floor = floor;
 	}
 	
-	public void putEventFromFloor(Event event) {
+	public synchronized void putEventFromFloor(Event event) {
 		eventQueue.add(event);
 		System.out.println("Scheduler: Recieved event from Floor. Event: " + event.toString());
 		notify();
@@ -49,19 +49,15 @@ public class Scheduler{
 	}
 
 	public static void main(String[] args) {
-		Thread floor, elev;
+		Floor floor = new Floor();
+		Scheduler scheduler = new Scheduler(floor);
+		floor.setScheduler(scheduler);
+		Elevator elevator = new Elevator(scheduler);
 		
-		floor = new Thread(new Floor(), "floor");
-		
-		Scheduler sch = new Scheduler(floor);
-		
-		elev = new Thread(new Elevator(sch), "elv");
-		
-		floor.setScheduler(sch);
-		
-		floor.start();
-		elev.start();
-		
+		Thread floorThread = new Thread(floor);
+		Thread elevThread = new Thread(elevator);
+		floorThread.start();
+		elevThread.start();
 	}
 
 }

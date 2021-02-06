@@ -13,7 +13,7 @@ import src.adt.Event;
 public class Floor implements Runnable {
 	
 	private Scheduler scheduler;
-	boolean hasMoreEvents = false;
+	boolean hasMoreEvents = true;
 	
 	/** Used to generate the random intervals between events */
 	private Random rand = new Random();
