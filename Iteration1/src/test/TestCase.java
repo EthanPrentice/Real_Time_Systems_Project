@@ -48,15 +48,20 @@ class TestCase {
 	void testFloorParsing() {
 		
 		floorThread.start();
-		while(floorThread.isAlive());
+		
+		// wait for threads to end
+		while(floorThread.isAlive()) {
+			try {
+				Thread.sleep(100L);
+			} catch(InterruptedException e) {
+				fail("Thread interrupted!");
+			}
+		}
 		
 		Event testEvent = new Event(LocalTime.parse("15:06:10.0"), 1, ButtonDirection.UP, 4); //The expected last parsed Event object
 		Event getEvent = floor.getLastParsed();
 		
-		assertEquals(getEvent.getRequestTime(), testEvent.getRequestTime());
-		assertEquals(getEvent.getFloorNum(), testEvent.getFloorNum());
-		assertEquals(getEvent.getDirection(), testEvent.getDirection());
-		assertEquals(getEvent.getCarButton(), testEvent.getCarButton());
+		assertEquals(getEvent, testEvent);
 	}
 	
 	/**
@@ -66,7 +71,15 @@ class TestCase {
 	void testSchedulerReceive() {
 		
 		floorThread.start();
-		while(floorThread.isAlive());
+		
+		// wait for threads to end
+		while(floorThread.isAlive()) {
+			try {
+				Thread.sleep(100L);
+			} catch(InterruptedException e) {
+				fail("Thread interrupted!");
+			}
+		}
 		
 		//All three expected test events
 		Event testEvent1 = new Event(LocalTime.parse("14:05:15.0"), 2, ButtonDirection.UP, 4);
@@ -78,20 +91,9 @@ class TestCase {
 		Event getEvent3 = scheduler.getEvent();
 		
 		//Test the entire scheduler event queue
-		assertEquals(getEvent1.getRequestTime(), testEvent1.getRequestTime());
-		assertEquals(getEvent1.getFloorNum(), testEvent1.getFloorNum());
-		assertEquals(getEvent1.getDirection(), testEvent1.getDirection());
-		assertEquals(getEvent1.getCarButton(), testEvent1.getCarButton());
-
-		assertEquals(getEvent2.getRequestTime(), testEvent2.getRequestTime());
-		assertEquals(getEvent2.getFloorNum(), testEvent2.getFloorNum());
-		assertEquals(getEvent2.getDirection(), testEvent2.getDirection());
-		assertEquals(getEvent2.getCarButton(), testEvent2.getCarButton());
-		
-		assertEquals(getEvent3.getRequestTime(), testEvent3.getRequestTime());
-		assertEquals(getEvent3.getFloorNum(), testEvent3.getFloorNum());
-		assertEquals(getEvent3.getDirection(), testEvent3.getDirection());
-		assertEquals(getEvent3.getCarButton(), testEvent3.getCarButton());
+		assertEquals(getEvent1, testEvent1);
+		assertEquals(getEvent2, testEvent2);
+		assertEquals(getEvent3, testEvent3);
 	}
 	
 	/**
@@ -102,15 +104,20 @@ class TestCase {
 		
 		floorThread.start();
 		elevatorThread.start();
-		while(floorThread.isAlive() || elevatorThread.isAlive());
+		
+		// wait for threads to end
+		while(floorThread.isAlive() || elevatorThread.isAlive()) {
+			try {
+				Thread.sleep(100L);
+			} catch(InterruptedException e) {
+				fail("Thread interrupted!");
+			}
+		}
 		
 		Event testEvent = new Event(LocalTime.parse("15:06:10.0"), 1, ButtonDirection.UP, 4); //The expected last parsed Event object
 		Event getEvent = elevator.getEvent();
 		
-		assertEquals(getEvent.getRequestTime(), testEvent.getRequestTime());
-		assertEquals(getEvent.getFloorNum(), testEvent.getFloorNum());
-		assertEquals(getEvent.getDirection(), testEvent.getDirection());
-		assertEquals(getEvent.getCarButton(), testEvent.getCarButton());
+		assertEquals(getEvent, testEvent);
 	}
 	
 	/**
@@ -121,15 +128,20 @@ class TestCase {
 		
 		floorThread.start();
 		elevatorThread.start();
-		while(floorThread.isAlive() || elevatorThread.isAlive());
+		
+		// wait for threads to end
+		while(floorThread.isAlive() || elevatorThread.isAlive()) {
+			try {
+				Thread.sleep(100L);
+			} catch(InterruptedException e) {
+				fail("Thread interrupted!");
+			}
+		}
 		
 		Event testEvent = new Event(LocalTime.parse("15:06:10.0"), 1, ButtonDirection.UP, 4); //The expected last received Event object
 		Event getEvent = floor.getLastReceived();
 		
-		assertEquals(getEvent.getRequestTime(), testEvent.getRequestTime());
-		assertEquals(getEvent.getFloorNum(), testEvent.getFloorNum());
-		assertEquals(getEvent.getDirection(), testEvent.getDirection());
-		assertEquals(getEvent.getCarButton(), testEvent.getCarButton());
+		assertEquals(getEvent, testEvent);
 		
 	}
 	
@@ -140,15 +152,20 @@ class TestCase {
 	void testElevatorSend() {
 		floorThread.start();
 		elevatorThread.start();
-		while(floorThread.isAlive() || elevatorThread.isAlive());
+		
+		// wait for threads to end
+		while(floorThread.isAlive() || elevatorThread.isAlive()) {
+			try {
+				Thread.sleep(100L);
+			} catch(InterruptedException e) {
+				fail("Thread interrupted!");
+			}
+		}
 		
 		Event testEvent = new Event(LocalTime.parse("15:06:10.0"), 1, ButtonDirection.UP, 4); //The expected last received Event object
 		Event getEvent = scheduler.getElevatorEvent();
 		
-		assertEquals(getEvent.getRequestTime(), testEvent.getRequestTime());
-		assertEquals(getEvent.getFloorNum(), testEvent.getFloorNum());
-		assertEquals(getEvent.getDirection(), testEvent.getDirection());
-		assertEquals(getEvent.getCarButton(), testEvent.getCarButton());
+		assertEquals(getEvent, testEvent);
 	}
 		
 }
