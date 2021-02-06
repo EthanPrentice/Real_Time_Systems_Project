@@ -45,6 +45,7 @@ public class Scheduler{
 	
 	public void sendEventToFloor(Event event) {
 		System.out.println("Scheduler: Recieved Event From Elevator. Event: " + event.toString());
+		System.out.println("Scheduler: Sent Event to Floor. Event: " + event.toString());
 		floor.put(event);
 	}
 
