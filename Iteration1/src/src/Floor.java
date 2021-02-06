@@ -39,7 +39,7 @@ public class Floor implements Runnable {
 	 * @param event
 	 */
 	public synchronized void put(Event event) {
-		System.out.println("Floor: Received event. Event: " + event.toString());
+		System.out.println("Floor: Received event from Scheduler. Event: " + event.toString());
 	}
 	
 	
