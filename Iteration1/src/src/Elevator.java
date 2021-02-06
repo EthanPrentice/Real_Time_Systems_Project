@@ -40,7 +40,6 @@ public class Elevator implements Runnable{     //Creates a new elevator
 	public void stop() {
 		isRunning = false;
 	}
-}
 	
 	/**
 	 * Event getter method
@@ -52,8 +51,3 @@ public class Elevator implements Runnable{     //Creates a new elevator
 }
 
 
-//send events to the sch
-
-//receive events from sch
-
-//call like how agent calls chefs
