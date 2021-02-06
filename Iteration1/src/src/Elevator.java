@@ -10,6 +10,7 @@ import java.lang.Thread;
 public class Elevator implements Runnable{     //Creates a new elevator
 
 	private Scheduler scheduler;
+	private Event event;
 
 	private boolean isRunning = true;
 
@@ -18,8 +19,8 @@ public class Elevator implements Runnable{     //Creates a new elevator
 	 */
 	public void run() {
 		while(isRunning) {
-			Event progress = scheduler.getEvent();
-			System.out.println("Elevator: Received " + progress.toString() + " from scheduler...");
+			event = scheduler.getEvent();
+			System.out.println("Elevator: Received " + event.toString() + " from scheduler...");
 
 			try {
 				Thread.sleep(1000);
@@ -27,8 +28,8 @@ public class Elevator implements Runnable{     //Creates a new elevator
 				System.err.println(e.getMessage());
 			}
 
-			System.out.println("Elevator: Sending " + progress.toString() + " to scheduler...");
-			scheduler.sendEventToFloor(progress);
+			System.out.println("Elevator: Sending " + event.toString() + " to scheduler...");
+			scheduler.sendEventToFloor(event);
 		}
 	}
 
@@ -40,3 +41,19 @@ public class Elevator implements Runnable{     //Creates a new elevator
 		isRunning = false;
 	}
 }
+	
+	/**
+	 * Event getter method
+	 * @return the last event object received from the scheduler
+	 */
+	public Event getEvent() {
+		return this.event;
+	}
+}
+
+
+//send events to the sch
+
+//receive events from sch
+
+//call like how agent calls chefs
