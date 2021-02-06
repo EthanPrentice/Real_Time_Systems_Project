@@ -5,6 +5,12 @@ package test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.time.LocalTime;
+
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import src.*;
@@ -17,79 +23,114 @@ import src.adt.*;
  */
 class TestCase {
 
+	private Floor floor;
+	private Elevator elevator;
+	private Scheduler scheduler;
+	private Thread floorThread;
+	private Thread elevatorThread;
+	
+	@BeforeEach
+	void setup() {
+		floor = new Floor();
+		elevator = new Elevator();
+		scheduler = new Scheduler(floor, elevator);
+		floor.setScheduler(scheduler);
+		elevator.setScheduler(scheduler);
+		
+		floorThread = new Thread(floor);
+		elevatorThread = new Thread(elevator);
+		
+	}
+	
 	/**
-	 * Tests the Floor's ability to read in event data, parse it, and send it to the scheduler 
+	 * Tests the Floor's ability to read in event data and parse it
 	 */
 	@Test
 	void testFloorParsing() {
 		
-		System.out.println("---Floor Parsing Test---");
-		
-		Floor floor = new Floor();
-		Elevator elevator = new Elevator();
-		Scheduler scheduler = new Scheduler(floor, elevator);
-		floor.setScheduler(scheduler);
-		
-		Thread floorThread = new Thread(floor);
-		
 		floorThread.start();
+		while(floorThread.isAlive());
 		
-		Event event1 = scheduler.getEvent(); //If event queue is empty, calls wait() on main thread
-		Event event2 = scheduler.getEvent();
-		Event event3= scheduler.getEvent();
-				
-		//assertTrue(event1.getRequestTime().toString() == "14:05:15");
-		assertTrue(event1.getFloorNum() == 2);
-		assertTrue(event1.getDirection() == ButtonDirection.UP);
-		assertTrue(event1.getCarButton() == 4);
+		Event testEvent = new Event(LocalTime.parse("15:06:10.0"), 1, ButtonDirection.UP, 4); //The expected last parsed Event object
+		Event getEvent = floor.getLastParsed();
 		
-		//assertTrue(event2.getRequestTime() == LocalTime.parse("14:06:10.0"));
-		assertTrue(event2.getFloorNum() == 3);
-		assertTrue(event2.getDirection() == ButtonDirection.DOWN);
-		assertTrue(event2.getCarButton() == 1);
-		
-		//assertTrue(event3.getRequestTime() == LocalTime.parse("15:06:10.0"));
-		assertTrue(event3.getFloorNum() == 1);
-		assertTrue(event3.getDirection() == ButtonDirection.UP);
-		assertTrue(event3.getCarButton() == 4);
-		
-		//Make sure floor thread doesn't run forever
-		assertFalse(floorThread.isAlive());
-		
-		System.out.println("---Floor parsing test complete---\n");
+		assertEquals(getEvent.getRequestTime(), testEvent.getRequestTime());
+		assertEquals(getEvent.getFloorNum(), testEvent.getFloorNum());
+		assertEquals(getEvent.getDirection(), testEvent.getDirection());
+		assertEquals(getEvent.getCarButton(), testEvent.getCarButton());
 	}
 	
 	/**
-	 * Tests the system's ability to pass data between threads
+	 * Tests the data passed from the floor to the scheduler
 	 */
 	@Test
-	void testDataPassing() {
+	void testFloorSend() {
 		
-		System.out.println("---System Data Passing Test---");
+		floorThread.start();
+		while(floorThread.isAlive());
 		
-		Floor floor = new Floor();
-		Elevator elevator = new Elevator();
-		Scheduler scheduler = new Scheduler(floor, elevator);
-		floor.setScheduler(scheduler);
-		elevator.setScheduler(scheduler);
+		Event testEvent1 = new Event(LocalTime.parse("14:05:15.0"), 2, ButtonDirection.UP, 4);
+		Event testEvent2 = new Event(LocalTime.parse("14:06:10.0"), 3, ButtonDirection.DOWN, 1);
+		Event testEvent3 = new Event(LocalTime.parse("15:06:10.0"), 1, ButtonDirection.UP, 4);
 		
-		assertTrue(floor != null);
-		assertTrue(elevator != null);
-		assertTrue(scheduler != null);
+		Event getEvent1 = scheduler.getEvent();
+		Event getEvent2 = scheduler.getEvent();
+		Event getEvent3 = scheduler.getEvent();
 		
-		Thread floorThread = new Thread(floor);
-		Thread elevatorThread = new Thread(elevator);
+		//Test the entire scheduler event queue
+		assertEquals(getEvent1.getRequestTime(), testEvent1.getRequestTime());
+		assertEquals(getEvent1.getFloorNum(), testEvent1.getFloorNum());
+		assertEquals(getEvent1.getDirection(), testEvent1.getDirection());
+		assertEquals(getEvent1.getCarButton(), testEvent1.getCarButton());
+
+		assertEquals(getEvent2.getRequestTime(), testEvent2.getRequestTime());
+		assertEquals(getEvent2.getFloorNum(), testEvent2.getFloorNum());
+		assertEquals(getEvent2.getDirection(), testEvent2.getDirection());
+		assertEquals(getEvent2.getCarButton(), testEvent2.getCarButton());
+		
+		assertEquals(getEvent3.getRequestTime(), testEvent3.getRequestTime());
+		assertEquals(getEvent3.getFloorNum(), testEvent3.getFloorNum());
+		assertEquals(getEvent3.getDirection(), testEvent3.getDirection());
+		assertEquals(getEvent3.getCarButton(), testEvent3.getCarButton());
+	}
+	
+	/**
+	 * Tests the data received by the elevator. This is ALWAYS the data sent back to the scheduler
+	 */
+	@Test
+	void testElevatorReceive() {
 		
 		floorThread.start();
 		elevatorThread.start();
+		while(floorThread.isAlive() || elevatorThread.isAlive());
 		
-		assertTrue(floorThread.isAlive());
-		assertTrue(elevatorThread.isAlive());
+		Event testEvent = new Event(LocalTime.parse("15:06:10.0"), 1, ButtonDirection.UP, 4); //The expected last parsed Event object
+		Event getEvent = elevator.getEvent();
 		
-		while(floorThread.isAlive() || elevatorThread.isAlive()); //wait for threads to finish
+		assertEquals(getEvent.getRequestTime(), testEvent.getRequestTime());
+		assertEquals(getEvent.getFloorNum(), testEvent.getFloorNum());
+		assertEquals(getEvent.getDirection(), testEvent.getDirection());
+		assertEquals(getEvent.getCarButton(), testEvent.getCarButton());
+	}
+	
+	/**
+	 * Tests the elevator data sent to the floor from the scheduler
+	 */
+	@Test
+	void testFloorReceive() {
 		
-		System.out.println("---System data passing test complete---");
+		floorThread.start();
+		elevatorThread.start();
+		while(floorThread.isAlive() || elevatorThread.isAlive());
+		
+		Event testEvent = new Event(LocalTime.parse("15:06:10.0"), 1, ButtonDirection.UP, 4); //The expected last parsed Event object
+		Event getEvent = floor.getLastReceived();
+		
+		assertEquals(getEvent.getRequestTime(), testEvent.getRequestTime());
+		assertEquals(getEvent.getFloorNum(), testEvent.getFloorNum());
+		assertEquals(getEvent.getDirection(), testEvent.getDirection());
+		assertEquals(getEvent.getCarButton(), testEvent.getCarButton());
+		
 	}
 		
-
 }
