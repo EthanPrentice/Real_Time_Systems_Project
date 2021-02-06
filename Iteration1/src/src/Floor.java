@@ -16,6 +16,8 @@ public class Floor implements Runnable {
 	
 	private Scheduler scheduler;
 	boolean hasMoreEvents = true;
+	private Event lastParsed;
+	private Event lastReceived;
 	
 	/** Used to generate the random intervals between events */
 	private Random rand = new Random();
@@ -39,6 +41,7 @@ public class Floor implements Runnable {
 	 * @param event
 	 */
 	public synchronized void put(Event event) {
+		lastReceived = event;
 		System.out.println("Floor: Received event from Scheduler. Event: " + event.toString());
 	}
 	
@@ -59,13 +62,13 @@ public class Floor implements Runnable {
 			while (reader.hasNextLine()) {
 				String line = reader.nextLine();
 				try {
-					Event event = Event.parseFromString(line);
+					lastParsed = Event.parseFromString(line);
 					
 					// sleep to simulate real time events (between 1 and 3 seconds)
 					Long sleepMs = 1000L * (rand.nextInt(3) + 1);
 					Thread.sleep(sleepMs); // TODO: change this timing to be timing in file
 					
-					System.out.println("Floor: Sent event to Scheduler. Event: " + event.toString());
+					System.out.println("Floor: Sent event to Scheduler. Event: " + lastParsed.toString());
 					
 					// Set hasMoreEvents before the last call to scheduler.putEventFromFloor
 					// Prevents elevator deadlock in the case Scheduler calls hasMoreEvents() in-between calls to putEventFromFloor and setting hasMoreEvents to false
@@ -73,7 +76,7 @@ public class Floor implements Runnable {
 						hasMoreEvents = false;
 					}
 					
-					scheduler.putEventFromFloor(event);
+					scheduler.putEventFromFloor(lastParsed);
 					
 				} catch (IllegalArgumentException e) {
 					System.err.print(e.getMessage());
@@ -100,6 +103,22 @@ public class Floor implements Runnable {
 	 */
 	public boolean hasMoreEvents() {
 		return hasMoreEvents;
+	}
+	
+	/**
+	 * Gets the last event object created by the floor
+	 * @return the last event object parsed
+	 */
+	public Event getLastParsed() {
+		return this.lastParsed;
+	}
+	
+	/**
+	 * Gets the last event object received from the scheduler
+	 * @return
+	 */
+	public Event getLastReceived() {
+		return this.lastReceived;
 	}
 	
 }
