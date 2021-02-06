@@ -14,8 +14,10 @@ import src.*;
 import src.adt.*;
 
 /**
+ * Tests the Events parsed by the Floor as well as the Events passed between each thread
  * 
- * @author Nick
+ * Written for SYSC3303 - Group 6 - Iteration 1 @ Carleton University
+ * @author Nicholas Milani 101075096
  *
  */
 class TestCase {
