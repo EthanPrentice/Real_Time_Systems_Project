@@ -40,10 +40,3 @@ public class Elevator implements Runnable{     //Creates a new elevator
 		isRunning = false;
 	}
 }
-
-
-//send events to the sch
-
-//receive events from sch
-
-//call like how agent calls chefs
