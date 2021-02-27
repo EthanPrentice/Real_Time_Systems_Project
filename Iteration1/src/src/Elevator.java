@@ -4,6 +4,7 @@ import src.adt.*;
 import util.Log;
 
 import java.lang.Thread;
+import java.util.Comparator;
 import java.util.PriorityQueue;
 
 /**
@@ -18,8 +19,17 @@ public class Elevator implements Runnable {
 
 	private ElevatorState currState = ElevatorState.STOPPED;
 	
-	private Scheduler scheduler;	
+	private Scheduler scheduler;
+	
+	private Object floorQueueLock = new Object();
 	private PriorityQueue<Integer> floorQueue = new PriorityQueue<Integer>();
+	
+	private Comparator<Integer> downComparator = new Comparator<Integer>() {
+        @Override
+        public int compare(Integer o1, Integer o2) {
+            return o2.compareTo(o1);
+        }
+    };
 
 	private boolean isRunning = true;
 
@@ -31,14 +41,14 @@ public class Elevator implements Runnable {
 	 * Runs the thread. Gets event from the Scheduler and then sends event back to the Scheduler
 	 */
 	public synchronized void run() {
-		while(isRunning) {         // while elevator is running
+		while(isRunning || !floorQueue.isEmpty()) {         // while elevator is running
 			
 			while (floorQueue.isEmpty()) {
 				try {
-					synchronized(floorQueue) {
-						floorQueue.wait();
+					synchronized(floorQueueLock) {
+						floorQueueLock.wait();
 						
-						if (!isRunning) {
+						if (!isRunning && floorQueue.isEmpty()) {
 							return;
 						}
 					}
@@ -72,11 +82,20 @@ public class Elevator implements Runnable {
 	public void pushEvent(Event e) {
 		Log.log("Elevator received event from Scheduler: " + e.toString());
 		
+		if (floorQueue.isEmpty()) {
+			if (e.getSourceFloor() < e.getDestFloor()) {
+				floorQueue = new PriorityQueue<>(11);
+			}
+			else {
+				floorQueue = new PriorityQueue<>(11, downComparator);
+			}
+		}
+		
 		floorQueue.add(e.getDestFloor());
 		floorQueue.add(e.getSourceFloor());
 		
-		synchronized(floorQueue) {
-			floorQueue.notifyAll();
+		synchronized(floorQueueLock) {
+			floorQueueLock.notifyAll();
 		}
 		
 	}
@@ -128,6 +147,8 @@ public class Elevator implements Runnable {
 		
 		switch(newState) {
 		case MOVING_UP:
+			moveToEventFloor(targetFloor);
+			break;
 		case MOVING_DOWN:
 			moveToEventFloor(targetFloor);
 			break;
@@ -142,7 +163,9 @@ public class Elevator implements Runnable {
 			break;
 			
 		case STOPPED:
-			scheduler.notifyElevatorStopped(this);
+			if (floorQueue.isEmpty()) {
+				scheduler.notifyElevatorStopped(this);
+			}
 			break;
 		}
 	}
@@ -161,8 +184,8 @@ public class Elevator implements Runnable {
 	 */
 	public void stop() {
 		isRunning = false;
-		synchronized(floorQueue) {
-			floorQueue.notifyAll();
+		synchronized(floorQueueLock) {
+			floorQueueLock.notifyAll();
 		}
 	}
 	

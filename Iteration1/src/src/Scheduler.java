@@ -66,14 +66,20 @@ public class Scheduler implements Runnable {
 	/**
 	 * Checks whether an elevator, e, can a request in it's current state
 	 */
-	private boolean canSendEventToElevator(Elevator e) {
-		switch(e.getState()) {
-		case STOPPED: return true;
-		case MOVING_DOWN: return downEventCount > 0;
-		case MOVING_UP: return upEventCount > 0;
-		default:
-			return false;
+	private boolean canSendEventToElevator(Elevator elevator) {
+		Iterator<Event> iter = eventList.iterator();
+		while (iter.hasNext()) {
+		   Event e = iter.next();
+		   
+		   if (elevator.getState() == ElevatorState.STOPPED
+				   || (elevator.getState() == ElevatorState.MOVING_UP && elevator.getFloor() <= e.getSourceFloor())
+				   || (elevator.getState() == ElevatorState.MOVING_DOWN && elevator.getFloor() >= e.getSourceFloor())) 
+		   {
+			   return true;
+		   }
 		}
+		
+		return false;
 	}
 	
 	
@@ -107,16 +113,21 @@ public class Scheduler implements Runnable {
 		while (iter.hasNext()) {
 		   Event e = iter.next();
 		   
-		   elevator.pushEvent(e);
-		   
-			if (e.getDirection() == ButtonDirection.UP) {
-				--upEventCount;
-			}
-			else {
-				--downEventCount;
-			}
-		   
-		   iter.remove();
+		   if (elevator.getState() == ElevatorState.STOPPED
+				   || (elevator.getState() == ElevatorState.MOVING_UP && elevator.getFloor() <= e.getSourceFloor())
+				   || (elevator.getState() == ElevatorState.MOVING_DOWN && elevator.getFloor() >= e.getSourceFloor())) 
+		   {
+			   elevator.pushEvent(e);
+			   
+			   if (e.getDirection() == ButtonDirection.UP) {
+				   --upEventCount;
+			   }
+			   else {
+				   --downEventCount;
+			   }
+			   
+			   iter.remove();
+		   }
 		}
 	}	
 	
