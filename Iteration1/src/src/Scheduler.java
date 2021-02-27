@@ -39,13 +39,19 @@ public class Scheduler implements Runnable {
 		while (!stopRequested) {
 			
 			// TODO: change to check if any elevators can be used to send an event to
-			while (eventList.isEmpty() || !canSendEventToElevator(elevator)) {
+			while (eventList.isEmpty() || !canSendEventToElevator(elevator)) {				
 				try {
 					wait();
 					
 					if (stopRequested) {
 						return;
 					}
+					
+					if (eventList.isEmpty() && !floor.hasMoreEvents()) {
+						elevator.stop();
+						return;
+					}
+					
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
@@ -87,6 +93,8 @@ public class Scheduler implements Runnable {
 		
 		// notify we have events
 		notifyAll();
+		
+
 	}
 	
 	/**

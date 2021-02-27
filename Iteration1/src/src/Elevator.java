@@ -33,10 +33,14 @@ public class Elevator implements Runnable {
 	public synchronized void run() {
 		while(isRunning) {         // while elevator is running
 			
-			if (floorQueue.isEmpty()) {
+			while (floorQueue.isEmpty()) {
 				try {
 					synchronized(floorQueue) {
 						floorQueue.wait();
+						
+						if (!isRunning) {
+							return;
+						}
 					}
 				} catch (InterruptedException e) {
 					e.printStackTrace();
@@ -156,6 +160,9 @@ public class Elevator implements Runnable {
 	 */
 	public void stop() {
 		isRunning = false;
+		synchronized(floorQueue) {
+			floorQueue.notifyAll();
+		}
 	}
 	
 	/**
