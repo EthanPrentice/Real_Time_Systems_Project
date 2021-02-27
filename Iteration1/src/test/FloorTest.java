@@ -68,7 +68,7 @@ class FloorTest {
 	
 	/**
 	 * Tests the elevator data sent to the floor from the scheduler
-	 * **needs refactor
+	 *
 	 */
 	@Test
 	void testFloorReceive() {
@@ -94,7 +94,7 @@ class FloorTest {
 
 	/**
 	 * Tests the data passed from the floor to the scheduler
-	 * **NEEDS REFACTOR
+	 * 
 	 */
 	 @Test
 	 void testFloorSend() {

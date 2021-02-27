@@ -14,10 +14,9 @@ import src.Scheduler;
 import src.adt.*;
 
 /**
- * 
- * Tests ALL PATHS of the elevator state machine
- * 
- * @author Nick
+ * Tests all possible paths for the Elevator state machine using varying test data
+ * Written for SYSC3303 - Group 6 - Iteration 2 @ Carleton University
+ * @author Nicholas Milani 101075096
  *
  */
 class ElevatorTest {
@@ -43,6 +42,9 @@ class ElevatorTest {
 		
 	}
 	
+	/**
+	 * Tests the elevator's final position and state after a request to the same floor
+	 */
 	@Test
 	void testSameFloorRequest() {
 		System.out.println("----Same Floor Request----");
@@ -65,6 +67,9 @@ class ElevatorTest {
 		assertEquals(elevator.getState(), ElevatorState.STOPPED); //Make sure the elevator is stopped and the doors are closed
 	}
 	
+	/**
+	 * Tests the elevator's final position and state after a request to a lower floor
+	 */
 	@Test
 	void testLowerFloorRequest() {
 		System.out.println("----Lower Floor Request----");
@@ -83,10 +88,13 @@ class ElevatorTest {
 			}
 		}
 		
-		assertEquals(floor.getLastFloor(), 2);
-		assertEquals(elevator.getState(), ElevatorState.STOPPED);
+		assertEquals(floor.getLastFloor(), 2); //The expected last floor for the elevator to be stopped at
+		assertEquals(elevator.getState(), ElevatorState.STOPPED); //Make sure the elevator is stopped and the doors are closed
 	}
 	
+	/**
+	 * Tests the elevator's final position and state after a request to an upper floor
+	 */
 	@Test
 	void testUpperFloorRequest() {
 		System.out.println("----Upper Floor Request----");
@@ -105,7 +113,7 @@ class ElevatorTest {
 			}
 		}
 		
-		assertEquals(floor.getLastFloor(), 4); //The expected last floor is the floor it started on i.e. floor 1
+		assertEquals(floor.getLastFloor(), 4); //The expected last floor for the elevator to be stopped at
 		assertEquals(elevator.getState(), ElevatorState.STOPPED); //Make sure the elevator is stopped and the doors are closed
 	}
 
