@@ -45,6 +45,7 @@ class ElevatorTest {
 	
 	@Test
 	void testSameFloorRequest() {
+		System.out.println("----Same Floor Request----");
 		floor.setFilePath("res/same_floor_test.txt");
 
 		schedulerThread.start();
@@ -66,12 +67,46 @@ class ElevatorTest {
 	
 	@Test
 	void testLowerFloorRequest() {
+		System.out.println("----Lower Floor Request----");
+		floor.setFilePath("res/lower_floor_test.txt");
 		
+		schedulerThread.start();
+		floorThread.start();
+		elevatorThread.start();
+		
+		// wait for threads to end
+		while(floorThread.isAlive() || schedulerThread.isAlive() || elevatorThread.isAlive()) {
+			try {
+				Thread.sleep(100L);
+			} catch(InterruptedException e) {
+				fail("Thread interrupted!");
+			}
+		}
+		
+		assertEquals(floor.getLastFloor(), 2);
+		assertEquals(elevator.getState(), ElevatorState.STOPPED);
 	}
 	
 	@Test
 	void testUpperFloorRequest() {
+		System.out.println("----Upper Floor Request----");
+		floor.setFilePath("res/upper_floor_test.txt");
 		
+		schedulerThread.start();
+		floorThread.start();
+		elevatorThread.start();
+		
+		// wait for threads to end
+		while(floorThread.isAlive() || schedulerThread.isAlive() || elevatorThread.isAlive()) {
+			try {
+				Thread.sleep(100L);
+			} catch(InterruptedException e) {
+				fail("Thread interrupted!");
+			}
+		}
+		
+		assertEquals(floor.getLastFloor(), 4); //The expected last floor is the floor it started on i.e. floor 1
+		assertEquals(elevator.getState(), ElevatorState.STOPPED); //Make sure the elevator is stopped and the doors are closed
 	}
 
 }
