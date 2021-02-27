@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import src.Elevator;
 import src.Floor;
 import src.Scheduler;
+import src.adt.*;
 
 /**
  * 
@@ -44,7 +45,23 @@ class ElevatorTest {
 	
 	@Test
 	void testSameFloorRequest() {
+		floor.setFilePath("res/same_floor_test.txt");
+
+		schedulerThread.start();
+		floorThread.start();
+		elevatorThread.start();
 		
+		// wait for threads to end
+		while(floorThread.isAlive() || schedulerThread.isAlive() || elevatorThread.isAlive()) {
+			try {
+				Thread.sleep(100L);
+			} catch(InterruptedException e) {
+				fail("Thread interrupted!");
+			}
+		}
+		
+		assertEquals(floor.getLastFloor(), 1); //The expected last floor is the floor it started on i.e. floor 1
+		assertEquals(elevator.getState(), ElevatorState.STOPPED); //Make sure the elevator is stopped and the doors are closed
 	}
 	
 	@Test
