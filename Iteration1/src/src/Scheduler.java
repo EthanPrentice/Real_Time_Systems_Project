@@ -17,6 +17,7 @@ public class Scheduler implements Runnable {
 	private Floor floor;
 	private Elevator elevator;
 	private Event elevatorEvent;
+	private Event lastFloorEvent;
 	
 	private int upEventCount = 0;
 	private int downEventCount = 0;
@@ -89,6 +90,7 @@ public class Scheduler implements Runnable {
 		}
 		
 		eventList.add(event);
+		lastFloorEvent = event;
 		Log.log("Scheduler: Recieved event from Floor. Event: " + event.toString());
 		
 		// notify we have events
@@ -136,7 +138,13 @@ public class Scheduler implements Runnable {
 		return this.elevatorEvent;
 	}
 	
-	
+	/**
+	 * Returns the last floor event received
+	 * @return lastFloorEvent
+	 */
+	public Event getLastFloorEvent() {
+		return this.lastFloorEvent;
+	}
 	/**
 	 * Called by the elevator to notify there was a floor change
 	 * @param e
