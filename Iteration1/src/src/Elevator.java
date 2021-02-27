@@ -10,6 +10,7 @@ import java.util.PriorityQueue;
  * Written for SYSC3303 - Group 6 - Iteration 1 @ Carleton University
  * Creates and runs the elevator sub-system as a thread. Here, the elevator thread gets and displays an event from scheduler, then sends the event back to scheduler
  * @author Nikhil Kharbanda 101012041
+ * @edited Ethan Prentice (101070194)
  */
 
 
@@ -22,6 +23,7 @@ public class Elevator implements Runnable {
 
 	private boolean isRunning = true;
 
+	private int targetFloor = 0;
 	private int currFloor = 0;
 	
 	
@@ -41,7 +43,7 @@ public class Elevator implements Runnable {
 				}
 			}
 			
-			int targetFloor = floorQueue.remove();
+			targetFloor = floorQueue.remove();
 			
 			// get rid of duplicate floors
 			while (!floorQueue.isEmpty() && floorQueue.peek() == targetFloor) {
@@ -54,7 +56,6 @@ public class Elevator implements Runnable {
 			else if (currFloor > targetFloor) {
 				changeState(ElevatorState.MOVING_DOWN);
 			}
-			moveToEventFloor(targetFloor);
 			
 			changeState(ElevatorState.DOORS_OPEN);
 		}
@@ -114,14 +115,17 @@ public class Elevator implements Runnable {
 		}		
 	}
 	
-	
+	/**
+	 * Manages state changes in accordance with the Elevator State Machine diagram
+	 * @param newState the state to change to
+	 */
 	private void changeState(ElevatorState newState) {
 		currState = newState;
 		
 		switch(newState) {
 		case MOVING_UP:
 		case MOVING_DOWN:
-			
+			moveToEventFloor(targetFloor);
 			break;
 			
 		case DOORS_OPEN:
@@ -134,7 +138,6 @@ public class Elevator implements Runnable {
 			break;
 			
 		case STOPPED:
-			
 			break;
 		}
 	}
@@ -162,6 +165,9 @@ public class Elevator implements Runnable {
 		return currFloor;
 	}
 	
+	/**
+	 * @return the elevator's current ElevatorState
+	 */
 	public ElevatorState getState() {
 		return currState;
 	}

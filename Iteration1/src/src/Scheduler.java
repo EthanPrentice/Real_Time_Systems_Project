@@ -9,7 +9,7 @@ import util.Log;
 /**
  * Recieves events from Floor and saves in Queue. Reads events from Queue and sends to elevator. Receives Event from Elevator and sends to Floor
  * @author Baillie Noell 101066676 Group 6
- *
+ * @edited Ethan Prentice (101070194)
  */
 public class Scheduler implements Runnable {
 	
@@ -42,6 +42,10 @@ public class Scheduler implements Runnable {
 			while (eventList.isEmpty() || !canSendEventToElevator(elevator)) {
 				try {
 					wait();
+					
+					if (stopRequested) {
+						return;
+					}
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
@@ -52,6 +56,9 @@ public class Scheduler implements Runnable {
 	}
 	
 	
+	/**
+	 * Checks whether an elevator, e, can a request in it's current state
+	 */
 	private boolean canSendEventToElevator(Elevator e) {
 		switch(e.getState()) {
 		case STOPPED: return true;
@@ -125,7 +132,7 @@ public class Scheduler implements Runnable {
 	/**
 	 * Called by the elevator to notify there was a floor change
 	 * @param e
-	 * @param newFlsoor
+	 * @param newFloor
 	 */
 	public synchronized void notifyElevatorFloorChange(Elevator e, int newFloor) {
 		Log.log("Scheduler: Recieved floor changed event from Elevator. Elevator now on floor: " + newFloor);
@@ -135,8 +142,12 @@ public class Scheduler implements Runnable {
 	}
 	
 	
+	/**
+	 * Stops the runnable from looping, and exits run() after the current request has been executed
+	 */
 	public void requestStop() {
 		stopRequested = true;
+		notifyAll();
 	}
 	
 	
