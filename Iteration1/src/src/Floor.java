@@ -38,12 +38,11 @@ public class Floor implements Runnable {
 	
 	
 	/**
-	 * Receives event and prints it
+	 * Receives floor change and prints it
 	 * @param event
 	 */
-	public synchronized void put(Event event) {
-		lastReceived = event;
-		Log.log("Floor: Received event from Scheduler. Event: " + event.toString());
+	public synchronized void onElevatorFloorChanged(Elevator e, int floor) {
+		Log.log("Floor: Received event from Scheduler. Elevator now on floor: " + floor);
 	}
 	
 	
@@ -66,7 +65,7 @@ public class Floor implements Runnable {
 					lastParsed = Event.parseFromString(line);
 					
 					// sleep to simulate real time events (between 1 and 3 seconds)
-					Long sleepMs = 1000L * (rand.nextInt(3) + 1);
+					Long sleepMs = 2000L * (rand.nextInt(3) + 1);
 					Thread.sleep(sleepMs); // TODO: change this timing to be timing in file
 					
 					Log.log("Floor: Sent event to Scheduler. Event: " + lastParsed.toString());

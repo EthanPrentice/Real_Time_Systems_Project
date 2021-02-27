@@ -65,6 +65,8 @@ public class Elevator implements Runnable {
 	 * @param e
 	 */
 	public void pushEvent(Event e) {
+		Log.log("Elevator received event from Scheduler: " + e.toString());
+		
 		floorQueue.add(e.getDestFloor());
 		floorQueue.add(e.getSourceFloor());
 		

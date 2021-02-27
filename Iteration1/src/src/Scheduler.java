@@ -105,13 +105,12 @@ public class Scheduler implements Runnable {
 	
 	/**
 	 * Scheduler receives Event from Elevator and sends to Floor
-	 * @param event
+	 * @param e: elevator that's floor has changed
+	 * @param newFloor: e's new floor
 	 */
-	public void sendEventToFloor(Event event) {
-		elevatorEvent = event;
-		Log.log("Scheduler: Recieved Event From Elevator. Event: " + event.toString());
-		Log.log("Scheduler: Sent Event to Floor. Event: " + event.toString());
-		floor.put(event);
+	public void sendEventToFloor(Elevator e, int newFloor) {
+		Log.log("Scheduler: Sent floor changed event to Floor. Elevator now on floor: " + newFloor);
+		floor.onElevatorFloorChanged(e, newFloor);
 	}
 	
 	/**
@@ -126,10 +125,11 @@ public class Scheduler implements Runnable {
 	/**
 	 * Called by the elevator to notify there was a floor change
 	 * @param e
-	 * @param floor
+	 * @param newFlsoor
 	 */
-	public synchronized void notifyElevatorFloorChange(Elevator e, int floor) {
-		Log.log("Scheduler received floor change event. (floor=" + floor + ")");
+	public synchronized void notifyElevatorFloorChange(Elevator e, int newFloor) {
+		Log.log("Scheduler: Recieved floor changed event from Elevator. Elevator now on floor: " + newFloor);
+		sendEventToFloor(e, newFloor);
 		
 		notifyAll();
 	}
