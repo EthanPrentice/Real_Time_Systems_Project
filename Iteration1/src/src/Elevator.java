@@ -26,6 +26,7 @@ public class Elevator implements Runnable {
 	private int targetFloor = 0;
 	private int currFloor = 0;
 	
+	private Event lastEvent;
 	
 	/**
 	 * Runs the thread. Gets event from the Scheduler and then sends event back to the Scheduler
@@ -75,6 +76,7 @@ public class Elevator implements Runnable {
 		floorQueue.add(e.getDestFloor());
 		floorQueue.add(e.getSourceFloor());
 		
+		lastEvent = e;
 		synchronized(floorQueue) {
 			floorQueue.notifyAll();
 		}
@@ -178,6 +180,14 @@ public class Elevator implements Runnable {
 	 */
 	public ElevatorState getState() {
 		return currState;
+	}
+	
+	/**
+	 * 
+	 * @return the last event received from the scheduler
+	 */
+	public Event getLastEvent() {
+		return this.lastEvent;
 	}
 }
 
