@@ -142,6 +142,7 @@ public class Elevator implements Runnable {
 			break;
 			
 		case STOPPED:
+			scheduler.notifyElevatorStopped(this);
 			break;
 		}
 	}

@@ -145,6 +145,8 @@ public class Scheduler implements Runnable {
 	public Event getLastFloorEvent() {
 		return this.lastFloorEvent;
 	}
+	
+	
 	/**
 	 * Called by the elevator to notify there was a floor change
 	 * @param e
@@ -154,6 +156,15 @@ public class Scheduler implements Runnable {
 		Log.log("Scheduler: Recieved floor changed event from Elevator. Elevator now on floor: " + newFloor);
 		sendEventToFloor(e, newFloor);
 		
+		notifyAll();
+	}
+	
+	
+	/**
+	 * When the elevator stops, notify the scheduler it can send another event
+	 * @param e
+	 */
+	public synchronized void notifyElevatorStopped(Elevator e) {
 		notifyAll();
 	}
 	
