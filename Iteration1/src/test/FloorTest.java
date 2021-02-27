@@ -79,7 +79,7 @@ class FloorTest {
 		
 		
 		// wait for threads to end
-		while(floorThread.isAlive()) {
+		while(floorThread.isAlive() || schedulerThread.isAlive() || elevatorThread.isAlive()) {
 			try {
 				Thread.sleep(100L);
 			} catch(InterruptedException e) {
@@ -87,11 +87,8 @@ class FloorTest {
 			}
 		}
 		
-		scheduler.requestStop();
-		elevator.stop();
-		
 
-		assertEquals(floor.getLastFloor(), 1); //The expected last floor;
+		assertEquals(floor.getLastFloor(), 1); //The expected last floor 1
 		
 	}
 

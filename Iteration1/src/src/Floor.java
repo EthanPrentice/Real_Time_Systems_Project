@@ -21,6 +21,7 @@ public class Floor implements Runnable {
 	private Event lastReceived;
 	private int lastFloor;
 	private Elevator lastElevator;
+	private String filePath;
 	
 	/** Used to generate the random intervals between events */
 	private Random rand = new Random();
@@ -29,8 +30,16 @@ public class Floor implements Runnable {
 	@Override
 	public void run() {
 		// hard code file location for now
-		File file = new File("res/test_data.txt");
-		readFromFile(file);
+		if(filePath == null) {
+			File file = new File("res/test_data.txt");
+			readFromFile(file);
+		}
+		
+		else {
+			File file = new File(filePath);
+			readFromFile(file);
+		}
+		
 	}
 	
 	
@@ -123,6 +132,10 @@ public class Floor implements Runnable {
 	 */
 	public int getLastFloor() {
 		return this.lastFloor;
+	}
+	
+	public void setFilePath(String path) {
+		this.filePath = path;
 	}
 	
 }
