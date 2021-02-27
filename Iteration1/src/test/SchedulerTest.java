@@ -17,7 +17,7 @@ import src.adt.ButtonDirection;
 import src.adt.Event;
 
 /**
- * Tests all possible paths for the Scheduler state machine using varying test data
+ * Tests the scheduler's ability to send and receive data to and from the elevator and floor systems
  * Written for SYSC3303 - Group 6 - Iteration 2 @ Carleton University
  * @author Nicholas Milani 101075096
  *
