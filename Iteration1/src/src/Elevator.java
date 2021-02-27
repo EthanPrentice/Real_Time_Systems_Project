@@ -1,7 +1,11 @@
 package src;
 
 import src.adt.*;
+import util.Log;
+
 import java.lang.Thread;
+import java.util.PriorityQueue;
+
 /**
  * Written for SYSC3303 - Group 6 - Iteration 1 @ Carleton University
  * Creates and runs the elevator sub-system as a thread. Here, the elevator thread gets and displays an event from scheduler, then sends the event back to scheduler
@@ -9,31 +13,130 @@ import java.lang.Thread;
  */
 
 
-public class Elevator implements Runnable{     
+public class Elevator implements Runnable {     
 
-	private Scheduler scheduler;
-	private Event event;
+	private ElevatorState currState = ElevatorState.STOPPED;
+	
+	private Scheduler scheduler;	
+	private PriorityQueue<Integer> floorQueue = new PriorityQueue<Integer>();
 
 	private boolean isRunning = true;
 
+	private int currFloor = 0;
+	
+	
 	/**
 	 * Runs the thread. Gets event from the Scheduler and then sends event back to the Scheduler
 	 */
-	public void run() {
-		while(isRunning) {         //while elevator is running
-			event = scheduler.getEvent();
-			System.out.println("Elevator: Recieved Event From Scheduler. Event: " + event.toString());    //gets an event from scheduler and prints event out
-
-			try {
-				Thread.sleep(1000);           //sleep for 1 second
-			} catch (InterruptedException e) {
-				System.err.println(e.getMessage());
+	public synchronized void run() {
+		while(isRunning) {         // while elevator is running
+			
+			if (floorQueue.isEmpty()) {
+				try {
+					synchronized(floorQueue) {
+						floorQueue.wait();
+					}
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
 			}
-
-			System.out.println("Elevator: Sent Event to Scheduler. Event: " + event.toString());          //sends an event to scheduler and prints event being sent
-			scheduler.sendEventToFloor(event);
+			
+			int targetFloor = floorQueue.remove();
+			
+			// get rid of duplicate floors
+			while (!floorQueue.isEmpty() && floorQueue.peek() == targetFloor) {
+				floorQueue.remove();
+			}
+			
+			if (currFloor < targetFloor) {
+				changeState(ElevatorState.MOVING_UP);
+			}
+			else if (currFloor > targetFloor) {
+				changeState(ElevatorState.MOVING_DOWN);
+			}
+			moveToEventFloor(targetFloor);
+			
+			changeState(ElevatorState.DOORS_OPEN);
 		}
 	}
+	
+	/**
+	 * Add the target and source floors to the floors that the elevator must stop at
+	 * @param e
+	 */
+	public void pushEvent(Event e) {
+		floorQueue.add(e.getDestFloor());
+		floorQueue.add(e.getSourceFloor());
+		
+		synchronized(floorQueue) {
+			floorQueue.notifyAll();
+		}
+		
+	}
+	
+	
+	private void onDoorsOpen() {
+		Log.log("Elevator doors opened");
+		
+		// Doors open, wait a bit to close
+		try {
+			// TODO: change to actual load time
+			Thread.sleep(500L);           // sleep for 500ms second
+		} catch (InterruptedException e) {
+			Log.log(e.getMessage());
+		}
+		
+		changeState(ElevatorState.DOORS_CLOSED);
+	}
+	
+	
+	private void moveToEventFloor(int targetFloor) {		
+		int delta = 1;
+		if (currState == ElevatorState.MOVING_DOWN) {
+			delta = -1;
+		}
+		
+		while (currFloor != targetFloor) {
+			currFloor += delta;
+			
+			scheduler.notifyElevatorFloorChange(this, currFloor);
+			
+			try {
+				// TODO: change to real time between floors
+				Thread.sleep(1000L);
+				
+				Log.log("Elevator reached floor: " + currFloor);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}		
+	}
+	
+	
+	private void changeState(ElevatorState newState) {
+		currState = newState;
+		
+		switch(newState) {
+		case MOVING_UP:
+		case MOVING_DOWN:
+			
+			break;
+			
+		case DOORS_OPEN:
+			onDoorsOpen();
+			break;
+			
+		case DOORS_CLOSED:
+			Log.log("Elevator doors have closed");
+			changeState(ElevatorState.STOPPED);
+			break;
+			
+		case STOPPED:
+			
+			break;
+		}
+	}
+	
 
 	/**
 	 * Setter method for scheduler
@@ -51,11 +154,14 @@ public class Elevator implements Runnable{
 	}
 	
 	/**
-	 * Event getter method
-	 * @return the last event object received from the scheduler
+	 * @return the floor the elevator is currently on, with 0 being ground
 	 */
-	public Event getEvent() {
-		return this.event;
+	public int getFloor() {
+		return currFloor;
+	}
+	
+	public ElevatorState getState() {
+		return currState;
 	}
 }
 

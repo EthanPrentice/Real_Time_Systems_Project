@@ -5,6 +5,7 @@ import java.io.*;
 import java.lang.Runnable;
 
 import src.adt.Event;
+import util.Log;
 
 /**
  * Written for SYSC3303 - Group 6 - Iteration 1 @ Carleton University
@@ -42,7 +43,7 @@ public class Floor implements Runnable {
 	 */
 	public synchronized void put(Event event) {
 		lastReceived = event;
-		System.out.println("Floor: Received event from Scheduler. Event: " + event.toString());
+		Log.log("Floor: Received event from Scheduler. Event: " + event.toString());
 	}
 	
 	
@@ -68,7 +69,7 @@ public class Floor implements Runnable {
 					Long sleepMs = 1000L * (rand.nextInt(3) + 1);
 					Thread.sleep(sleepMs); // TODO: change this timing to be timing in file
 					
-					System.out.println("Floor: Sent event to Scheduler. Event: " + lastParsed.toString());
+					Log.log("Floor: Sent event to Scheduler. Event: " + lastParsed.toString());
 					
 					// Set hasMoreEvents before the last call to scheduler.putEventFromFloor
 					// Prevents elevator deadlock in the case Scheduler calls hasMoreEvents() in-between calls to putEventFromFloor and setting hasMoreEvents to false

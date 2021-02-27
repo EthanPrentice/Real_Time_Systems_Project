@@ -13,16 +13,16 @@ import java.util.*;
  */
 public class Event {
 	private LocalTime reqTime;
-	private int floorNum;
+	private int srcFloor;
 	private ButtonDirection btnDirection;
-	private int carBtn;
+	private int dstFloor;
 	
 	
-	public Event(LocalTime reqTime, int floorNum, ButtonDirection btnDirection, int carBtn) {
+	public Event(LocalTime reqTime, int srcFloor, ButtonDirection btnDirection, int dstFloor) {
 		this.reqTime = reqTime;
-		this.floorNum = floorNum;
+		this.srcFloor = srcFloor;
 		this.btnDirection = btnDirection;
-		this.carBtn = carBtn;
+		this.dstFloor = dstFloor;
 	}
 	
 	
@@ -31,9 +31,9 @@ public class Event {
 		StringJoiner sj = new StringJoiner(" ");
 		
 		sj.add(reqTime.toString());
-		sj.add(new Integer(floorNum).toString());
+		sj.add(new Integer(srcFloor).toString());
 		sj.add(btnDirection.name());
-		sj.add(new Integer(carBtn).toString());
+		sj.add(new Integer(dstFloor).toString());
 		
 		return sj.toString();
 	}
@@ -44,16 +44,16 @@ public class Event {
 		return reqTime;
 	}
 	
-	public int getFloorNum() {
-		return floorNum;
+	public int getSourceFloor() {
+		return srcFloor;
 	}
 	
 	public ButtonDirection getDirection() {
 		return btnDirection;
 	}
 	
-	public int getCarButton() {
-		return carBtn;
+	public int getDestFloor() {
+		return dstFloor;
 	}
 	// End of getters
 	
@@ -63,9 +63,9 @@ public class Event {
 		if (o instanceof Event) {
 			Event e = (Event) o;
 			return reqTime.equals(e.reqTime)
-				&& floorNum == e.floorNum
+				&& srcFloor == e.srcFloor
 				&& btnDirection.equals(e.btnDirection)
-				&& carBtn == e.carBtn;
+				&& dstFloor == e.dstFloor;
 		} else {
 			return false;
 		}

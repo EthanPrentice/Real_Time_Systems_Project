@@ -1,21 +1,27 @@
 package src;
 
-import java.util.LinkedList;
-import java.util.Queue;
+import java.util.ArrayList;
+import java.util.Iterator;
 
 import src.adt.*;
+import util.Log;
 
 /**
  * Recieves events from Floor and saves in Queue. Reads events from Queue and sends to elevator. Receives Event from Elevator and sends to Floor
  * @author Baillie Noell 101066676 Group 6
  *
  */
-public class Scheduler{
+public class Scheduler implements Runnable {
 	
-	private Queue<Event> eventQueue = new LinkedList<Event>();
+	private ArrayList<Event> eventList = new ArrayList<Event>();
 	private Floor floor;
 	private Elevator elevator;
 	private Event elevatorEvent;
+	
+	private int upEventCount = 0;
+	private int downEventCount = 0;
+	
+	private boolean stopRequested = false;
 	
 	/**
 	 * Constructor, saves references to the floor and elevator
@@ -27,40 +33,75 @@ public class Scheduler{
 		this.elevator = elevator;
 	}
 	
+	
+	@Override
+	public synchronized void run() {
+		while (!stopRequested) {
+			
+			// TODO: change to check if any elevators can be used to send an event to
+			while (eventList.isEmpty() || !canSendEventToElevator(elevator)) {
+				try {
+					wait();
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+			
+			sendEventsToElevator();
+		}
+	}
+	
+	
+	private boolean canSendEventToElevator(Elevator e) {
+		switch(e.getState()) {
+		case STOPPED: return true;
+		case MOVING_DOWN: return downEventCount > 0;
+		case MOVING_UP: return upEventCount > 0;
+		default:
+			return false;
+		}
+	}
+	
+	
 	/**
 	 * Receives event from floor and stores in a queue. 
 	 * @param event
 	 */
 	public synchronized void putEventFromFloor(Event event) {
-		eventQueue.add(event);
-		System.out.println("Scheduler: Recieved event from Floor. Event: " + event.toString());
-		//notify that an event has been added
-		notify();
+		if (event.getDirection() == ButtonDirection.UP) {
+			++upEventCount;
+		}
+		else {
+			++downEventCount;
+		}
+		
+		eventList.add(event);
+		Log.log("Scheduler: Recieved event from Floor. Event: " + event.toString());
+		
+		// notify we have events
+		notifyAll();
 	}
 	
 	/**
-	 * Elevators wait until there is an Event to be done
-	 * When there is an event Scheduler sends to Elevator
-	 * @return Event top event from queue
+	 * Sends the event to any appropriate elevators
 	 */
-	public synchronized Event getEvent() {
-		//if there are no events in the queue, wait
-		while(eventQueue.isEmpty()) {		
-			try {
-				wait();
-			} catch (InterruptedException e) {
-				System.err.println(e.getMessage());
+	private void sendEventsToElevator() {
+		Iterator<Event> iter = eventList.iterator();
+		while (iter.hasNext()) {
+		   Event e = iter.next();
+		   
+		   elevator.pushEvent(e);
+		   
+			if (e.getDirection() == ButtonDirection.UP) {
+				--upEventCount;
 			}
+			else {
+				--downEventCount;
+			}
+		   
+		   iter.remove();
 		}
-		
-		// This is the last event in the scheduler queue, and the floor has no more events.
-		if(eventQueue.size() == 1 && !floor.hasMoreEvents()) {
-			elevator.stop();
-		}
-		//remove event from queue and send to elevator
-		System.out.println("Scheduler: Sent event to Elevator. Event: " + eventQueue.peek().toString());
-		return eventQueue.remove();
-	}
+	}	
 	
 	/**
 	 * Scheduler receives Event from Elevator and sends to Floor
@@ -68,8 +109,8 @@ public class Scheduler{
 	 */
 	public void sendEventToFloor(Event event) {
 		elevatorEvent = event;
-		System.out.println("Scheduler: Recieved Event From Elevator. Event: " + event.toString());
-		System.out.println("Scheduler: Sent Event to Floor. Event: " + event.toString());
+		Log.log("Scheduler: Recieved Event From Elevator. Event: " + event.toString());
+		Log.log("Scheduler: Sent Event to Floor. Event: " + event.toString());
 		floor.put(event);
 	}
 	
@@ -80,6 +121,24 @@ public class Scheduler{
 	public Event getElevatorEvent() {
 		return this.elevatorEvent;
 	}
+	
+	
+	/**
+	 * Called by the elevator to notify there was a floor change
+	 * @param e
+	 * @param floor
+	 */
+	public synchronized void notifyElevatorFloorChange(Elevator e, int floor) {
+		Log.log("Scheduler received floor change event. (floor=" + floor + ")");
+		
+		notifyAll();
+	}
+	
+	
+	public void requestStop() {
+		stopRequested = true;
+	}
+	
 	
 	/**
 	 * Main Thread, creates Scheduler and starts Floor and Elevator Threads
@@ -95,6 +154,9 @@ public class Scheduler{
 		
 		Thread floorThread = new Thread(floor, "Floor");
 		Thread elevThread = new Thread(elevator, "Elevator");
+		Thread schedulerThread = new Thread(scheduler, "Scheduler");
+		
+		schedulerThread.start();
 		floorThread.start();
 		elevThread.start();
 	}
