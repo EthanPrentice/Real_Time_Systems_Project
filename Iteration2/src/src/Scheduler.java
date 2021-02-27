@@ -72,8 +72,8 @@ public class Scheduler implements Runnable {
 		   Event e = iter.next();
 		   
 		   if (elevator.getState() == ElevatorState.STOPPED
-				   || (elevator.getState() == ElevatorState.MOVING_UP && elevator.getFloor() <= e.getSourceFloor())
-				   || (elevator.getState() == ElevatorState.MOVING_DOWN && elevator.getFloor() >= e.getSourceFloor())) 
+				   || (elevator.getState() == ElevatorState.MOVING_UP && elevator.getFloor() <= e.getSourceFloor() && e.getDirection() == ButtonDirection.UP)
+				   || (elevator.getState() == ElevatorState.MOVING_DOWN && elevator.getFloor() >= e.getSourceFloor() && e.getDirection() == ButtonDirection.DOWN)) 
 		   {
 			   return true;
 		   }

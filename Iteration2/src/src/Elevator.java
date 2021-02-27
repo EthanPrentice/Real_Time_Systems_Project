@@ -21,9 +21,10 @@ public class Elevator implements Runnable {
 
 	private Scheduler scheduler;
 
+	// Store the floors to go to in a priority queue
+	// Depending on elevator direction these will be ordered least->greatest or the opposite
 	private Object floorQueueLock = new Object();
 	private PriorityQueue<Integer> floorQueue = new PriorityQueue<Integer>();
-
 	private Comparator<Integer> downComparator = new Comparator<Integer>() {
         @Override
         public int compare(Integer o1, Integer o2) {
@@ -83,6 +84,8 @@ public class Elevator implements Runnable {
 	public void pushEvent(Event e) {
 		Log.log("Elevator received event from Scheduler: " + e.toString());
 
+		// If the floorQueue is empty we could be going in a new direction
+		// Change the floor queue to use the default ordering or downComparator depending on new direction
 		if (floorQueue.isEmpty()) {
 			if (e.getSourceFloor() < e.getDestFloor()) {
 				floorQueue = new PriorityQueue<>(11);
@@ -96,6 +99,8 @@ public class Elevator implements Runnable {
 		floorQueue.add(e.getSourceFloor());
 		
 		lastEvent = e;
+		
+		// Notify that the floorQueue has had new floors added to it
 		synchronized(floorQueueLock) {
 			floorQueueLock.notifyAll();
 		}
@@ -118,6 +123,10 @@ public class Elevator implements Runnable {
 	}
 
 
+	/**
+	 * Moves floor-by-floor to the targetFloor 
+	 * @param targetFloor
+	 */
 	private void moveToEventFloor(int targetFloor) {
 		int delta = 1;
 		if (currState == ElevatorState.MOVING_DOWN) {
@@ -161,13 +170,13 @@ public class Elevator implements Runnable {
 
 		case DOORS_CLOSED:
 			Log.log("Elevator doors have closed");
-			changeState(ElevatorState.STOPPED);
+			if (floorQueue.isEmpty()) {
+				changeState(ElevatorState.STOPPED);
+				scheduler.notifyElevatorStopped(this);
+			}
 			break;
 
 		case STOPPED:
-			if (floorQueue.isEmpty()) {
-				scheduler.notifyElevatorStopped(this);
-			}
 			break;
 		}
 	}
