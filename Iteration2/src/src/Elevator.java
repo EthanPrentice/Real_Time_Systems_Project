@@ -18,6 +18,9 @@ import java.util.PriorityQueue;
 public class Elevator implements Runnable {
 	
 	private Scheduler scheduler;
+	
+	// Elevator name to differentiate elevators in the logs
+	private String name;
 
 	// default elevator state is stopped when the elevator is initialized
 	private ElevatorState currState = ElevatorState.STOPPED;
@@ -43,6 +46,11 @@ public class Elevator implements Runnable {
 
 	// testing purposes
 	private Event lastEvent;
+	
+	
+	public Elevator(String name) {
+		this.name = name;
+	}
 	
 
 	/**
@@ -92,7 +100,7 @@ public class Elevator implements Runnable {
 	 * @param e
 	 */
 	public void pushEvent(Event e) {
-		Log.log("Elevator received event from Scheduler: " + e.toString());
+		Log.log(name + " received event from Scheduler: " + e.toString(), Log.Level.INFO);
 
 		// If the floorQueue is empty we could be going in a new direction
 		// Change the floor queue to use the default ordering or downComparator depending on new direction
@@ -225,10 +233,16 @@ public class Elevator implements Runnable {
 	}
 
 	/**
-	 *
 	 * @return the last event received from the scheduler
 	 */
 	public Event getLastEvent() {
 		return this.lastEvent;
+	}
+	
+	/**
+	 * @return the name of the elevator
+	 */
+	public String getName() {
+		return name;
 	}
 }

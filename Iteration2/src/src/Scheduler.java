@@ -14,7 +14,7 @@ import util.Log;
 public class Scheduler implements Runnable {
 	
 	private Floor floor;
-	private Elevator elevator;
+	private ArrayList<Elevator> elevators;
 	
 	// List of events received from the floor and not yet sent to the elevators
 	private ArrayList<Event> eventList = new ArrayList<Event>();
@@ -32,9 +32,9 @@ public class Scheduler implements Runnable {
 	 * @param floor
 	 * @param elevator
 	 */
-	public Scheduler(Floor floor, Elevator elevator) {
+	public Scheduler(Floor floor, ArrayList<Elevator> elevators) {
 		this.floor = floor;
-		this.elevator = elevator;
+		this.elevators = elevators;
 	}
 	
 	
@@ -43,19 +43,19 @@ public class Scheduler implements Runnable {
 		while (!stopRequested) {
 			
 			// TODO: change to check if any elevators can be used to send an event to
-			while (eventList.isEmpty() || !canSendEventToElevator(elevator)) {				
+			while (eventList.isEmpty()) {				
 				try {
 					wait();
 					
 					if (stopRequested) {
-						elevator.requestStop();
+						stopElevators();
 						return;
 					}
 					
 					// if no more events in local queue or coming from the floor, stop elevator thread when possible and stop scheduler thread
 					// this should exit the application once elevator threads have stopped
 					if (eventList.isEmpty() && !floor.hasMoreEvents()) {
-						elevator.requestStop();
+						stopElevators();
 						return;
 					}
 					
@@ -65,36 +65,79 @@ public class Scheduler implements Runnable {
 			}
 			
 			// send as all events to the elevators that can be sent in their current states
-			sendEventsToElevator();
+			sendEventsToElevators();
 		}
 	}
 	
 	
 	/**
-	 * Checks whether an elevator, e, can a request in it's current state
-	 */
-	private boolean canSendEventToElevator(Elevator elevator) {
-		Iterator<Event> iter = eventList.iterator();
-		while (iter.hasNext()) {
-		   Event e = iter.next();
-		   
-		   // If elevator is stopped, or the event source floor is in the direction the elevator is currently moving, return true
-		   if (canSendEventToElevator(elevator, e)) {
-			   return true;
-		   }
-		}
-		
-		return false;
-	}
-	
-	
-	/**
-	 * Checks whether event can be sent to elevator
+	 * Checks whether event can be sent to elevator in it's current state
 	 */
 	private boolean canSendEventToElevator(Elevator elevator, Event event) {
 		return elevator.getState() == ElevatorState.STOPPED
 			|| (elevator.getState() == ElevatorState.MOVING_UP && elevator.getFloor() <= event.getSourceFloor() && event.getDirection() == ButtonDirection.UP)
 			|| (elevator.getState() == ElevatorState.MOVING_DOWN && elevator.getFloor() >= event.getSourceFloor() && event.getDirection() == ButtonDirection.DOWN);
+	}
+	
+	
+	/**
+	 * Returns the next event in the event list that can be sent to the elevator
+	 * @param elevator
+	 * @return the next event that is schedulable to elevator, or null if none exists
+	 */
+	private Event getNextEventForElevator(Elevator elevator) {
+		Iterator<Event> iter = eventList.iterator();
+		while (iter.hasNext()) {
+		   Event e = iter.next();
+		   
+		   // If elevator is stopped, or the event source floor is in the direction the elevator is currently moving, send the event to the elevator
+		   if (canSendEventToElevator(elevator, e)) {
+			   iter.remove();
+			   return e;
+		   }
+		}
+		
+		return null;
+	}
+	
+	
+	/**
+	 * Iterates over elevators, assigning events in the event list as evenly as possible across them
+	 * Any events that cannot be assigned to elevators in their current state are left in the event list for
+	 *   future scheduling
+	 */
+	private void sendEventsToElevators() {
+		// bit i = 0 -> elevator has signaled it can no longer receive any of the queued events
+		int elevatorCanReceiveEventFlag = ((1 << elevators.size()) - 1);
+		
+		while (elevatorCanReceiveEventFlag != 0) {
+			for (int i = 0; i < elevators.size(); ++i) {
+				
+				if ((elevatorCanReceiveEventFlag & (1 << i)) == 0) { // elevator i cannot receive events
+					continue;
+				}
+				
+				Event e = getNextEventForElevator(elevators.get(i));
+				if (e == null) {
+					// set that we cannot send events to elevator i
+					elevatorCanReceiveEventFlag &= ~(1 << i);
+				}
+				else {
+					elevators.get(i).pushEvent(e);
+				}
+			}
+		}
+		
+	}
+	
+	
+	/**
+	 * Requests that all elevators stop when they have finished their assigned jobs
+	 */
+	private void stopElevators() {
+		for (Elevator elevator : elevators) {
+			elevator.requestStop();
+		}
 	}
 	
 	
@@ -111,22 +154,6 @@ public class Scheduler implements Runnable {
 		notifyAll();
 	}
 
-	
-	/**
-	 * Sends the event to any appropriate elevators
-	 */
-	private void sendEventsToElevator() {
-		Iterator<Event> iter = eventList.iterator();
-		while (iter.hasNext()) {
-		   Event e = iter.next();
-		   
-		   // If elevator is stopped, or the event source floor is in the direction the elevator is currently moving, send the event to the elevator
-		   if (canSendEventToElevator(elevator, e)) {
-			   elevator.pushEvent(e);
-			   iter.remove();
-		   }
-		}
-	}
 	
 	/**
 	 * Scheduler receives Event from Elevator and sends to Floor
@@ -193,19 +220,30 @@ public class Scheduler implements Runnable {
 		Log.setLevel(Log.Level.INFO);
 		
 		Floor floor = new Floor();
-		Elevator elevator = new Elevator();
-		Scheduler scheduler = new Scheduler(floor, elevator);
+		
+		ArrayList<Elevator> elevators = new ArrayList<>();
+		elevators.add(new Elevator("Elevator 1"));
+		elevators.add(new Elevator("Elevator 2"));
+		
+		Scheduler scheduler = new Scheduler(floor, elevators);
 		
 		floor.setScheduler(scheduler);
-		elevator.setScheduler(scheduler);
 		
 		Thread floorThread = new Thread(floor, "Floor");
-		Thread elevThread = new Thread(elevator, "Elevator");
 		Thread schedulerThread = new Thread(scheduler, "Scheduler");
+		
+		ArrayList<Thread> elevatorThreads = new ArrayList<>();
+		for (Elevator elevator : elevators) {
+			elevator.setScheduler(scheduler);
+			
+			Thread elevatorThread = new Thread(elevator, elevator.getName());
+			elevatorThreads.add(elevatorThread);
+			elevatorThread.start();
+		}
 		
 		schedulerThread.start();
 		floorThread.start();
-		elevThread.start();
+		
 	}
 	
 
