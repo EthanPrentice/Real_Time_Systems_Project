@@ -48,6 +48,7 @@ public class Scheduler implements Runnable {
 					wait();
 					
 					if (stopRequested) {
+						elevator.requestStop();
 						return;
 					}
 					
@@ -78,15 +79,22 @@ public class Scheduler implements Runnable {
 		   Event e = iter.next();
 		   
 		   // If elevator is stopped, or the event source floor is in the direction the elevator is currently moving, return true
-		   if (elevator.getState() == ElevatorState.STOPPED
-				   || (elevator.getState() == ElevatorState.MOVING_UP && elevator.getFloor() <= e.getSourceFloor() && e.getDirection() == ButtonDirection.UP)
-				   || (elevator.getState() == ElevatorState.MOVING_DOWN && elevator.getFloor() >= e.getSourceFloor() && e.getDirection() == ButtonDirection.DOWN)) 
-		   {
+		   if (canSendEventToElevator(elevator, e)) {
 			   return true;
 		   }
 		}
 		
 		return false;
+	}
+	
+	
+	/**
+	 * Checks whether event can be sent to elevator
+	 */
+	private boolean canSendEventToElevator(Elevator elevator, Event event) {
+		return elevator.getState() == ElevatorState.STOPPED
+			|| (elevator.getState() == ElevatorState.MOVING_UP && elevator.getFloor() <= event.getSourceFloor() && event.getDirection() == ButtonDirection.UP)
+			|| (elevator.getState() == ElevatorState.MOVING_DOWN && elevator.getFloor() >= event.getSourceFloor() && event.getDirection() == ButtonDirection.DOWN);
 	}
 	
 	
@@ -102,6 +110,7 @@ public class Scheduler implements Runnable {
 		// notify we have events
 		notifyAll();
 	}
+
 	
 	/**
 	 * Sends the event to any appropriate elevators
@@ -112,15 +121,12 @@ public class Scheduler implements Runnable {
 		   Event e = iter.next();
 		   
 		   // If elevator is stopped, or the event source floor is in the direction the elevator is currently moving, send the event to the elevator
-		   if (elevator.getState() == ElevatorState.STOPPED
-				   || (elevator.getState() == ElevatorState.MOVING_UP && elevator.getFloor() <= e.getSourceFloor() && e.getDirection() == ButtonDirection.UP)
-				   || (elevator.getState() == ElevatorState.MOVING_DOWN && elevator.getFloor() >= e.getSourceFloor() && e.getDirection() == ButtonDirection.DOWN)) 
-		   {
+		   if (canSendEventToElevator(elevator, e)) {
 			   elevator.pushEvent(e);
 			   iter.remove();
 		   }
 		}
-	}	
+	}
 	
 	/**
 	 * Scheduler receives Event from Elevator and sends to Floor
@@ -157,8 +163,6 @@ public class Scheduler implements Runnable {
 	public synchronized void notifyElevatorFloorChange(Elevator e, int newFloor) {
 		Log.log("Scheduler: Recieved floor changed event from Elevator. Elevator now on floor: " + newFloor);
 		sendEventToFloor(e, newFloor);
-		
-		notifyAll();
 	}
 	
 	
