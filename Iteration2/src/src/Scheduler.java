@@ -14,7 +14,14 @@ import util.Log;
 public class Scheduler implements Runnable {
 	
 	private Floor floor;
+	
+	// all elevators
 	private ArrayList<Elevator> elevators;
+	
+	private ArrayList<Elevator> upElevators = new ArrayList<>();
+	private ArrayList<Elevator> downElevators = new ArrayList<>();
+	private ArrayList<Elevator> stoppedElevators = new ArrayList<>();
+	
 	
 	// List of events received from the floor and not yet sent to the elevators
 	private ArrayList<Event> eventList = new ArrayList<Event>();
@@ -35,6 +42,7 @@ public class Scheduler implements Runnable {
 	public Scheduler(Floor floor, ArrayList<Elevator> elevators) {
 		this.floor = floor;
 		this.elevators = elevators;
+		this.stoppedElevators.addAll(elevators);
 	}
 	
 	
@@ -42,8 +50,8 @@ public class Scheduler implements Runnable {
 	public synchronized void run() {
 		while (!stopRequested) {
 			
-			// TODO: change to check if any elevators can be used to send an event to
-			while (eventList.isEmpty()) {				
+			// send as all events to the elevators that can be sent in their current states
+			while (eventList.isEmpty() || !sendEventsToElevators()) {				
 				try {
 					wait();
 					
@@ -62,10 +70,7 @@ public class Scheduler implements Runnable {
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
-			}
-			
-			// send as all events to the elevators that can be sent in their current states
-			sendEventsToElevators();
+			}			
 		}
 	}
 	
@@ -101,33 +106,131 @@ public class Scheduler implements Runnable {
 	}
 	
 	
-	/**
-	 * Iterates over elevators, assigning events in the event list as evenly as possible across them
-	 * Any events that cannot be assigned to elevators in their current state are left in the event list for
-	 *   future scheduling
-	 */
-	private void sendEventsToElevators() {
-		// bit i = 0 -> elevator has signaled it can no longer receive any of the queued events
-		int elevatorCanReceiveEventFlag = ((1 << elevators.size()) - 1);
+	private Elevator getClosestElevatorFrom(Event event, ArrayList<Elevator> elevators) {
+		Elevator closestElevator = null;
 		
-		while (elevatorCanReceiveEventFlag != 0) {
-			for (int i = 0; i < elevators.size(); ++i) {
-				
-				if ((elevatorCanReceiveEventFlag & (1 << i)) == 0) { // elevator i cannot receive events
-					continue;
-				}
-				
-				Event e = getNextEventForElevator(elevators.get(i));
-				if (e == null) {
-					// set that we cannot send events to elevator i
-					elevatorCanReceiveEventFlag &= ~(1 << i);
+		for (Elevator elevator : elevators) {
+			if (canSendEventToElevator(elevator, event)) {
+				if (event.getDirection() == ButtonDirection.UP) {
+					if (closestElevator == null || closestElevator.getFloor() > elevator.getFloor()) {
+						closestElevator = elevator;
+						continue;
+					}
 				}
 				else {
-					elevators.get(i).pushEvent(e);
+					if (closestElevator == null || closestElevator.getFloor() < elevator.getFloor()) {
+						closestElevator = elevator;
+						continue;
+					}
+				}
+
+				if (closestElevator.getFloor() == elevator.getFloor()) {
+					if (elevator.getMaxOccupancy(event) < closestElevator.getMaxOccupancy(event)) {
+						closestElevator = elevator;
+					}
 				}
 			}
 		}
 		
+		return closestElevator;
+	}
+	
+	private Elevator getClosestElevator(Event event) {
+		Elevator closestElevator = null;
+		
+		if (event.getDirection() == ButtonDirection.UP) {
+			Elevator closestUp = getClosestElevatorFrom(event, upElevators);
+			
+			if (upElevators.size() >= Math.ceil(elevators.size() / 2f)) {
+				// cannot take anymore stopped elevators to up, or else we would have over half allocated to up
+				return closestUp;
+			}
+			
+			Elevator closestStopped = getClosestElevatorFrom(event, stoppedElevators);
+			
+			if (closestUp == null && closestStopped == null) {
+				return null;
+			}
+			else if (closestUp == null || closestUp.getFloor() > closestStopped.getFloor()) {
+				return closestStopped;
+			}
+			else if (closestStopped == null || closestUp.getFloor() < closestStopped.getFloor()) {
+				return closestUp;
+			}
+			else if (closestUp.getMaxOccupancy(event) <= closestStopped.getMaxOccupancy(event)) {
+				return closestUp;
+			}
+			else {
+				return closestStopped;
+			}
+		}
+		else if (event.getDirection() == ButtonDirection.DOWN) {
+			Elevator closestDown = getClosestElevatorFrom(event, downElevators);
+			
+			if (downElevators.size() >= Math.ceil(elevators.size() / 2f)) {
+				// cannot take anymore stopped elevators to up, or else we would have over half allocated to up
+				return closestDown;
+			}
+			
+			Elevator closestStopped = getClosestElevatorFrom(event, stoppedElevators);
+			
+			if (closestDown == null && closestStopped == null) {
+				return null;
+			}
+			else if (closestDown == null || closestDown.getFloor() < closestStopped.getFloor()) {
+				return closestStopped;
+			}
+			else if (closestStopped == null || closestDown.getFloor() > closestStopped.getFloor()) {
+				return closestDown;
+			}
+			else if (closestDown.getMaxOccupancy(event) <= closestStopped.getMaxOccupancy(event)) {
+				return closestDown;
+			}
+			else {
+				return closestStopped;
+			}
+		}
+		
+		return closestElevator;
+	}
+	
+	
+	/**
+	 * Iterates over elevators, assigning events in the event list as evenly as possible across them
+	 * Any events that cannot be assigned to elevators in their current state are left in the event list for
+	 *   future scheduling
+	 *   
+	 *   @return true if there were events sent.  false otherwise
+	 */
+	private boolean sendEventsToElevators() {
+		boolean sentAnEvent = false;
+		
+		Iterator<Event> iter = eventList.iterator();
+		while (iter.hasNext()) {
+			Event e = iter.next();
+			Elevator elevator = getClosestElevator(e);
+			
+			if (elevator == null) {
+				continue;
+			}
+			
+			elevator.pushEvent(e);
+			iter.remove();
+			sentAnEvent = true;
+			
+			stoppedElevators.remove(elevator);
+			
+			if (elevator.getState() == ElevatorState.STOPPED) {
+				if (e.getDirection() == ButtonDirection.UP) {
+					upElevators.add(elevator);
+				}
+				else {
+					downElevators.add(elevator);
+				}
+			}
+		}
+		
+		return sentAnEvent;
 	}
 	
 	
@@ -198,6 +301,10 @@ public class Scheduler implements Runnable {
 	 * @param e
 	 */
 	public synchronized void notifyElevatorStopped(Elevator e) {
+		upElevators.remove(e);
+		downElevators.remove(e);
+		stoppedElevators.add(e);
+		
 		notifyAll();
 	}
 	

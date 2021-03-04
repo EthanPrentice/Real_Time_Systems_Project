@@ -1,6 +1,7 @@
 package src;
 
 import src.adt.*;
+import util.Config;
 import util.Log;
 
 import java.lang.Thread;
@@ -35,6 +36,9 @@ public class Elevator implements Runnable {
             return o2.compareTo(o1);
         }
     };
+    
+    // holds how many people increase in elevator at a given floor
+    private int[] floorOccupancy = new int[Config.NUM_FLOORS];
 
 	private boolean stopRequested = false;
 
@@ -116,6 +120,8 @@ public class Elevator implements Runnable {
 		floorQueue.add(e.getDestFloor());
 		floorQueue.add(e.getSourceFloor());
 		
+		addEventOccupancy(e);
+		
 		lastEvent = e;
 		
 		// Notify that the floorQueue has had new floors added to it
@@ -124,7 +130,32 @@ public class Elevator implements Runnable {
 		}
 
 	}
-
+	
+	
+	private void addEventOccupancy(Event event) {
+		for (int i = event.getSourceFloor() - 1; i < event.getDestFloor(); ++i) {
+			++floorOccupancy[i];
+		}
+	}
+	
+	private int getMaxOccupancy(int minFloor, int maxFloor) {
+		int occupancy = 0;
+		for (int i = minFloor; i <= maxFloor; ++i) {
+			occupancy = Integer.max(occupancy, floorOccupancy[i]);
+		}
+		return occupancy;
+	}
+	
+	public int getMaxOccupancy(Event e) {
+		if (e.getDirection() == ButtonDirection.UP) {
+			return getMaxOccupancy(e.getSourceFloor(), e.getDestFloor());
+		}
+		else {
+			return getMaxOccupancy(e.getDestFloor(), e.getSourceFloor());
+		}
+		
+	}
+	
 
 	private void onDoorsOpen() {
 		Log.log("Elevator doors opened", Log.Level.INFO);
@@ -190,11 +221,15 @@ public class Elevator implements Runnable {
 			Log.log("Elevator doors have closed", Log.Level.INFO);
 			if (floorQueue.isEmpty()) {
 				changeState(ElevatorState.STOPPED);
-				scheduler.notifyElevatorStopped(this);
 			}
 			break;
 
 		case STOPPED:
+			// reset occupancy
+			for (int i = 0; i < floorOccupancy.length; ++i) {
+				floorOccupancy[i] = 0;
+			}
+			scheduler.notifyElevatorStopped(this);
 			break;
 		}
 	}

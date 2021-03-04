@@ -78,7 +78,8 @@ public class Floor implements Runnable {
 					lastParsed = Event.parseFromString(line);
 					
 					// sleep to simulate real time events (between 1 and 3 seconds)
-					Long sleepMs = 000L * (rand.nextInt(3) + 1);
+					Long sleepMs = 1000L * (rand.nextInt(3) + 1);
+					sleepMs = 1000L;
 					Thread.sleep(sleepMs); // TODO: change this timing to be timing in file
 					
 					Log.log("Floor: Sent event to Scheduler. Event: " + lastParsed.toString(), Log.Level.INFO);
