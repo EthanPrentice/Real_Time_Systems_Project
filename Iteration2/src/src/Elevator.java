@@ -16,10 +16,11 @@ import java.util.PriorityQueue;
 
 
 public class Elevator implements Runnable {
-
-	private ElevatorState currState = ElevatorState.STOPPED;
-
+	
 	private Scheduler scheduler;
+
+	// default elevator state is stopped when the elevator is initialized
+	private ElevatorState currState = ElevatorState.STOPPED;
 
 	// Store the floors to go to in a priority queue
 	// Depending on elevator direction these will be ordered least->greatest or the opposite
@@ -32,25 +33,31 @@ public class Elevator implements Runnable {
         }
     };
 
-	private boolean isRunning = true;
+	private boolean stopRequested = false;
 
+	// keep track of the floor the elevator is going to, and the floor it is currently on
+	// 0 is the ground floor and all elevators are initialized to this floor
 	private int targetFloor = 0;
 	private int currFloor = 0;
+	
 
+	// testing purposes
 	private Event lastEvent;
+	
 
 	/**
 	 * Runs the thread. Gets event from the Scheduler and then sends event back to the Scheduler
 	 */
 	public synchronized void run() {
-		while(isRunning || !floorQueue.isEmpty()) {         // while elevator is running
+		while(!stopRequested || !floorQueue.isEmpty()) {         // while elevator is running, or has more events in it's queue
 
 			while (floorQueue.isEmpty()) {
 				try {
 					synchronized(floorQueueLock) {
 						floorQueueLock.wait();
-
-						if (!isRunning && floorQueue.isEmpty()) {
+						
+						// if elevator has no events and has been signaled to exit, exit
+						if (stopRequested && floorQueue.isEmpty()) {
 							return;
 						}
 					}
@@ -61,19 +68,22 @@ public class Elevator implements Runnable {
 
 			targetFloor = floorQueue.remove();
 
-			// get rid of duplicate floors
-			while (!floorQueue.isEmpty() && floorQueue.peek() == targetFloor) {
+			// get rid of duplicate floors in case multiple events are on the same floor
+			while (!floorQueue.isEmpty() && floorQueue.peek().equals(targetFloor)) {
 				floorQueue.remove();
 			}
 
+			// depending on the direction from the current floor, change elevator state
 			if (currFloor < targetFloor) {
 				changeState(ElevatorState.MOVING_UP);
 			}
 			else if (currFloor > targetFloor) {
 				changeState(ElevatorState.MOVING_DOWN);
 			}
-
-			changeState(ElevatorState.DOORS_OPEN);
+			else {
+				// if current floor = target floor, open right away
+				changeState(ElevatorState.DOORS_OPEN);
+			}
 		}
 	}
 
@@ -109,7 +119,7 @@ public class Elevator implements Runnable {
 
 
 	private void onDoorsOpen() {
-		Log.log("Elevator doors opened");
+		Log.log("Elevator doors opened", Log.Level.INFO);
 
 		// Doors open, wait a bit to close
 		try {
@@ -127,7 +137,7 @@ public class Elevator implements Runnable {
 	 * Moves floor-by-floor to the targetFloor 
 	 * @param targetFloor
 	 */
-	private void moveToEventFloor(int targetFloor) {
+	private void moveToFloor(int targetFloor) {
 		int delta = 1;
 		if (currState == ElevatorState.MOVING_DOWN) {
 			delta = -1;
@@ -142,7 +152,7 @@ public class Elevator implements Runnable {
 				// TODO: change to real time between floors
 				Thread.sleep(1000L);
 
-				Log.log("Elevator reached floor: " + currFloor);
+				Log.log("Elevator reached floor: " + currFloor, Log.Level.INFO);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
@@ -158,10 +168,10 @@ public class Elevator implements Runnable {
 
 		switch(newState) {
 		case MOVING_UP:
-			moveToEventFloor(targetFloor);
-			break;
 		case MOVING_DOWN:
-			moveToEventFloor(targetFloor);
+			moveToFloor(targetFloor);
+			// open doors once the floor has been reached
+			changeState(ElevatorState.DOORS_OPEN);
 			break;
 
 		case DOORS_OPEN:
@@ -169,7 +179,7 @@ public class Elevator implements Runnable {
 			break;
 
 		case DOORS_CLOSED:
-			Log.log("Elevator doors have closed");
+			Log.log("Elevator doors have closed", Log.Level.INFO);
 			if (floorQueue.isEmpty()) {
 				changeState(ElevatorState.STOPPED);
 				scheduler.notifyElevatorStopped(this);
@@ -193,8 +203,8 @@ public class Elevator implements Runnable {
 	/**
 	 * sets the isRunning value to false. Simulates the elevator not running
 	 */
-	public void stop() {
-		isRunning = false;
+	public void requestStop() {
+		stopRequested = true;
 		synchronized(floorQueueLock) {
 			floorQueueLock.notifyAll();
 		}

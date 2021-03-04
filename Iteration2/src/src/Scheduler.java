@@ -13,16 +13,19 @@ import util.Log;
  */
 public class Scheduler implements Runnable {
 	
-	private ArrayList<Event> eventList = new ArrayList<Event>();
 	private Floor floor;
 	private Elevator elevator;
+	
+	// List of events received from the floor and not yet sent to the elevators
+	private ArrayList<Event> eventList = new ArrayList<Event>();
+
+	// Used for testing
 	private Event elevatorEvent;
 	private Event lastFloorEvent;
 	
-	private int upEventCount = 0;
-	private int downEventCount = 0;
-	
+	// true if scheduler thread should stop when it is safe to do so
 	private boolean stopRequested = false;
+	
 	
 	/**
 	 * Constructor, saves references to the floor and elevator
@@ -48,8 +51,10 @@ public class Scheduler implements Runnable {
 						return;
 					}
 					
+					// if no more events in local queue or coming from the floor, stop elevator thread when possible and stop scheduler thread
+					// this should exit the application once elevator threads have stopped
 					if (eventList.isEmpty() && !floor.hasMoreEvents()) {
-						elevator.stop();
+						elevator.requestStop();
 						return;
 					}
 					
@@ -58,6 +63,7 @@ public class Scheduler implements Runnable {
 				}
 			}
 			
+			// send as all events to the elevators that can be sent in their current states
 			sendEventsToElevator();
 		}
 	}
@@ -71,6 +77,7 @@ public class Scheduler implements Runnable {
 		while (iter.hasNext()) {
 		   Event e = iter.next();
 		   
+		   // If elevator is stopped, or the event source floor is in the direction the elevator is currently moving, return true
 		   if (elevator.getState() == ElevatorState.STOPPED
 				   || (elevator.getState() == ElevatorState.MOVING_UP && elevator.getFloor() <= e.getSourceFloor() && e.getDirection() == ButtonDirection.UP)
 				   || (elevator.getState() == ElevatorState.MOVING_DOWN && elevator.getFloor() >= e.getSourceFloor() && e.getDirection() == ButtonDirection.DOWN)) 
@@ -88,13 +95,6 @@ public class Scheduler implements Runnable {
 	 * @param event
 	 */
 	public synchronized void putEventFromFloor(Event event) {
-		if (event.getDirection() == ButtonDirection.UP) {
-			++upEventCount;
-		}
-		else {
-			++downEventCount;
-		}
-		
 		eventList.add(event);
 		lastFloorEvent = event;
 		Log.log("Scheduler: Recieved event from Floor. Event: " + event.toString());
@@ -111,19 +111,12 @@ public class Scheduler implements Runnable {
 		while (iter.hasNext()) {
 		   Event e = iter.next();
 		   
+		   // If elevator is stopped, or the event source floor is in the direction the elevator is currently moving, send the event to the elevator
 		   if (elevator.getState() == ElevatorState.STOPPED
 				   || (elevator.getState() == ElevatorState.MOVING_UP && elevator.getFloor() <= e.getSourceFloor() && e.getDirection() == ButtonDirection.UP)
 				   || (elevator.getState() == ElevatorState.MOVING_DOWN && elevator.getFloor() >= e.getSourceFloor() && e.getDirection() == ButtonDirection.DOWN)) 
 		   {
 			   elevator.pushEvent(e);
-			   
-			   if (e.getDirection() == ButtonDirection.UP) {
-				   --upEventCount;
-			   }
-			   else {
-				   --downEventCount;
-			   }
-			   
 			   iter.remove();
 		   }
 		}
@@ -192,6 +185,9 @@ public class Scheduler implements Runnable {
 	 * @param args
 	 */
 	public static void main(String[] args) {
+		// set to INFO for demo.  Use verbose / debug for testing
+		Log.setLevel(Log.Level.INFO);
+		
 		Floor floor = new Floor();
 		Elevator elevator = new Elevator();
 		Scheduler scheduler = new Scheduler(floor, elevator);

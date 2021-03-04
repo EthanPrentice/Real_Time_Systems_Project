@@ -10,12 +10,39 @@ import java.text.SimpleDateFormat;
  */
 public class Log {
 	
+	private static Level logLevel = Level.VERBOSE;
+	
+	
 	private static final SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
 	
+	public static void setLevel(Level newLevel) {
+		logLevel = newLevel;
+	}
+	
 	public static void log(String message) {        
-        Timestamp timestamp = new Timestamp(System.currentTimeMillis());
-        
-        String format = "[%s][Thread=%s] %s";
-        System.out.println(String.format(format, sdf.format(timestamp), Thread.currentThread().getName(), message));
+        log(message, Level.DEBUG);
+	}
+	
+	
+	public static void log(String message, Level msgLevel) {
+		if (msgLevel.value <= logLevel.value) {
+	        Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+	        
+	        String format = "[%s][Thread=%s] %s";
+	        System.out.println(String.format(format, sdf.format(timestamp), Thread.currentThread().getName(), message));
+		}
+	}
+	
+	
+	public enum Level {
+		VERBOSE(0),
+		DEBUG(2),
+		INFO(1);
+		
+		public final int value;
+		
+		private Level(int value) {
+			this.value = value;
+		}
 	}
 }

@@ -81,7 +81,7 @@ public class Floor implements Runnable {
 					Long sleepMs = 2000L * (rand.nextInt(3) + 1);
 					Thread.sleep(sleepMs); // TODO: change this timing to be timing in file
 					
-					Log.log("Floor: Sent event to Scheduler. Event: " + lastParsed.toString());
+					Log.log("Floor: Sent event to Scheduler. Event: " + lastParsed.toString(), Log.Level.INFO);
 					
 					// Set hasMoreEvents before the last call to scheduler.putEventFromFloor
 					// Prevents elevator deadlock in the case Scheduler calls hasMoreEvents() in-between calls to putEventFromFloor and setting hasMoreEvents to false
