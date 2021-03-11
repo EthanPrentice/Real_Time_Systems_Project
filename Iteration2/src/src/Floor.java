@@ -18,9 +18,7 @@ public class Floor implements Runnable {
 	private Scheduler scheduler;
 	boolean hasMoreEvents = true;
 	private Event lastParsed;
-	private Event lastReceived;
 	private int lastFloor;
-	private Elevator lastElevator;
 	private String filePath;
 	
 	/** Used to generate the random intervals between events */
@@ -54,7 +52,6 @@ public class Floor implements Runnable {
 	 */
 	public synchronized void onElevatorFloorChanged(Elevator e, int floor) {
 		lastFloor = floor;
-		lastElevator = e;
 		Log.log("Floor: Received event from Scheduler. Elevator now on floor: " + floor);
 	}
 	
