@@ -1,6 +1,7 @@
 package src;
 
 import src.adt.*;
+import src.adt.message.FloorRequest;
 import util.Config;
 import util.Log;
 
@@ -17,6 +18,11 @@ import java.util.PriorityQueue;
 
 
 public class Elevator implements Runnable {
+	
+	private static char elevatorCount = 0;
+	
+	
+	private char elevatorId;
 	
 	private Scheduler scheduler;
 	
@@ -49,11 +55,12 @@ public class Elevator implements Runnable {
 	
 
 	// testing purposes
-	private Event lastEvent;
+	private FloorRequest lastEvent;
 	
 	
 	public Elevator(String name) {
 		this.name = name;
+		this.elevatorId = elevatorCount++;
 	}
 	
 
@@ -103,7 +110,7 @@ public class Elevator implements Runnable {
 	 * Add the target and source floors to the floors that the elevator must stop at
 	 * @param e
 	 */
-	public void pushEvent(Event e) {
+	public void pushEvent(FloorRequest e) {
 		Log.log(name + " received event from Scheduler: " + e.toString(), Log.Level.INFO);
 
 		// If the floorQueue is empty we could be going in a new direction
@@ -132,8 +139,8 @@ public class Elevator implements Runnable {
 	}
 	
 	
-	private void addEventOccupancy(Event event) {
-		for (int i = event.getSourceFloor() - 1; i < event.getDestFloor(); ++i) {
+	private void addEventOccupancy(FloorRequest floorRequest) {
+		for (int i = floorRequest.getSourceFloor() - 1; i < floorRequest.getDestFloor(); ++i) {
 			++floorOccupancy[i];
 		}
 	}
@@ -146,7 +153,7 @@ public class Elevator implements Runnable {
 		return occupancy;
 	}
 	
-	public int getMaxOccupancy(Event e) {
+	public int getMaxOccupancy(FloorRequest e) {
 		if (e.getDirection() == ButtonDirection.UP) {
 			return getMaxOccupancy(e.getSourceFloor(), e.getDestFloor());
 		}
@@ -185,6 +192,8 @@ public class Elevator implements Runnable {
 		while (currFloor != targetFloor) {
 			currFloor += delta;
 
+			// TODO: send message to notify elevator change
+			// ElevStatusRequest
 			scheduler.notifyElevatorFloorChange(this, currFloor);
 
 			try {
@@ -198,6 +207,7 @@ public class Elevator implements Runnable {
 		}
 	}
 
+	
 	/**
 	 * Manages state changes in accordance with the Elevator State Machine diagram
 	 * @param newState the state to change to
@@ -270,7 +280,7 @@ public class Elevator implements Runnable {
 	/**
 	 * @return the last event received from the scheduler
 	 */
-	public Event getLastEvent() {
+	public FloorRequest getLastEvent() {
 		return this.lastEvent;
 	}
 	
@@ -279,5 +289,9 @@ public class Elevator implements Runnable {
 	 */
 	public String getName() {
 		return name;
+	}
+	
+	public char getElevatorId() {
+		return elevatorId;
 	}
 }

@@ -14,7 +14,7 @@ import src.Elevator;
 import src.Floor;
 import src.Scheduler;
 import src.adt.ButtonDirection;
-import src.adt.Event;
+import src.adt.message.FloorRequest;
 
 /**
  * Tests the scheduler's ability to send and receive data to and from the elevator and floor systems
@@ -62,9 +62,9 @@ class SchedulerTest {
 		}
 		
 		//Expected last event
-		Event testEvent = new Event(LocalTime.parse("14:06:10.0"), 3, ButtonDirection.DOWN, 1);
+		FloorRequest testEvent = new FloorRequest(LocalTime.parse("14:06:10.0"), 3, ButtonDirection.DOWN, 1);
 		
-		Event getEvent = scheduler.getLastFloorEvent();
+		FloorRequest getEvent = scheduler.getLastFloorEvent();
 		
 		assertEquals(getEvent, testEvent);
 	}
@@ -89,9 +89,9 @@ class SchedulerTest {
 		 }
 		 
 			//Expected last event
-			Event testEvent = new Event(LocalTime.parse("14:06:10.0"), 3, ButtonDirection.DOWN, 1);
+			FloorRequest testEvent = new FloorRequest(LocalTime.parse("14:06:10.0"), 3, ButtonDirection.DOWN, 1);
 			
-			Event getEvent = elevator.getLastEvent();
+			FloorRequest getEvent = elevator.getLastEvent();
 			
 			//Test the entire scheduler event queue
 			assertEquals(getEvent, testEvent);

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 import src.adt.*;
+import src.adt.message.FloorRequest;
 import util.Log;
 
 /**
@@ -12,6 +13,8 @@ import util.Log;
  * @edited Ethan Prentice (101070194)
  */
 public class Scheduler implements Runnable {
+	
+	public final static int RECEIVE_PORT = 23;
 	
 	private Floor floor;
 	
@@ -24,11 +27,11 @@ public class Scheduler implements Runnable {
 	
 	
 	// List of events received from the floor and not yet sent to the elevators
-	private ArrayList<Event> eventList = new ArrayList<Event>();
+	private ArrayList<FloorRequest> eventList = new ArrayList<FloorRequest>();
 
 	// Used for testing
-	private Event elevatorEvent;
-	private Event lastFloorEvent;
+	private FloorRequest elevatorEvent;
+	private FloorRequest lastFloorEvent;
 	
 	// true if scheduler thread should stop when it is safe to do so
 	private boolean stopRequested = false;
@@ -78,10 +81,10 @@ public class Scheduler implements Runnable {
 	/**
 	 * Checks whether event can be sent to elevator in it's current state
 	 */
-	private boolean canSendEventToElevator(Elevator elevator, Event event) {
+	private boolean canSendEventToElevator(Elevator elevator, FloorRequest floorRequest) {
 		return elevator.getState() == ElevatorState.STOPPED
-			|| (elevator.getState() == ElevatorState.MOVING_UP && elevator.getFloor() <= event.getSourceFloor() && event.getDirection() == ButtonDirection.UP)
-			|| (elevator.getState() == ElevatorState.MOVING_DOWN && elevator.getFloor() >= event.getSourceFloor() && event.getDirection() == ButtonDirection.DOWN);
+			|| (elevator.getState() == ElevatorState.MOVING_UP && elevator.getFloor() <= floorRequest.getSourceFloor() && floorRequest.getDirection() == ButtonDirection.UP)
+			|| (elevator.getState() == ElevatorState.MOVING_DOWN && elevator.getFloor() >= floorRequest.getSourceFloor() && floorRequest.getDirection() == ButtonDirection.DOWN);
 	}
 	
 	
@@ -90,10 +93,10 @@ public class Scheduler implements Runnable {
 	 * @param elevator
 	 * @return the next event that is schedulable to elevator, or null if none exists
 	 */
-	private Event getNextEventForElevator(Elevator elevator) {
-		Iterator<Event> iter = eventList.iterator();
+	private FloorRequest getNextEventForElevator(Elevator elevator) {
+		Iterator<FloorRequest> iter = eventList.iterator();
 		while (iter.hasNext()) {
-		   Event e = iter.next();
+		   FloorRequest e = iter.next();
 		   
 		   // If elevator is stopped, or the event source floor is in the direction the elevator is currently moving, send the event to the elevator
 		   if (canSendEventToElevator(elevator, e)) {
@@ -106,12 +109,12 @@ public class Scheduler implements Runnable {
 	}
 	
 	
-	private Elevator getClosestElevatorFrom(Event event, ArrayList<Elevator> elevators) {
+	private Elevator getClosestElevatorFrom(FloorRequest floorRequest, ArrayList<Elevator> elevators) {
 		Elevator closestElevator = null;
 		
 		for (Elevator elevator : elevators) {
-			if (canSendEventToElevator(elevator, event)) {
-				if (event.getDirection() == ButtonDirection.UP) {
+			if (canSendEventToElevator(elevator, floorRequest)) {
+				if (floorRequest.getDirection() == ButtonDirection.UP) {
 					if (closestElevator == null || closestElevator.getFloor() > elevator.getFloor()) {
 						closestElevator = elevator;
 						continue;
@@ -125,7 +128,7 @@ public class Scheduler implements Runnable {
 				}
 
 				if (closestElevator.getFloor() == elevator.getFloor()) {
-					if (elevator.getMaxOccupancy(event) < closestElevator.getMaxOccupancy(event)) {
+					if (elevator.getMaxOccupancy(floorRequest) < closestElevator.getMaxOccupancy(floorRequest)) {
 						closestElevator = elevator;
 					}
 				}
@@ -135,18 +138,18 @@ public class Scheduler implements Runnable {
 		return closestElevator;
 	}
 	
-	private Elevator getClosestElevator(Event event) {
+	private Elevator getClosestElevator(FloorRequest floorRequest) {
 		Elevator closestElevator = null;
 		
-		if (event.getDirection() == ButtonDirection.UP) {
-			Elevator closestUp = getClosestElevatorFrom(event, upElevators);
+		if (floorRequest.getDirection() == ButtonDirection.UP) {
+			Elevator closestUp = getClosestElevatorFrom(floorRequest, upElevators);
 			
 			if (upElevators.size() >= Math.ceil(elevators.size() / 2f)) {
 				// cannot take anymore stopped elevators to up, or else we would have over half allocated to up
 				return closestUp;
 			}
 			
-			Elevator closestStopped = getClosestElevatorFrom(event, stoppedElevators);
+			Elevator closestStopped = getClosestElevatorFrom(floorRequest, stoppedElevators);
 			
 			if (closestUp == null && closestStopped == null) {
 				return null;
@@ -157,22 +160,22 @@ public class Scheduler implements Runnable {
 			else if (closestStopped == null || closestUp.getFloor() < closestStopped.getFloor()) {
 				return closestUp;
 			}
-			else if (closestUp.getMaxOccupancy(event) <= closestStopped.getMaxOccupancy(event)) {
+			else if (closestUp.getMaxOccupancy(floorRequest) <= closestStopped.getMaxOccupancy(floorRequest)) {
 				return closestUp;
 			}
 			else {
 				return closestStopped;
 			}
 		}
-		else if (event.getDirection() == ButtonDirection.DOWN) {
-			Elevator closestDown = getClosestElevatorFrom(event, downElevators);
+		else if (floorRequest.getDirection() == ButtonDirection.DOWN) {
+			Elevator closestDown = getClosestElevatorFrom(floorRequest, downElevators);
 			
 			if (downElevators.size() >= Math.ceil(elevators.size() / 2f)) {
 				// cannot take anymore stopped elevators to up, or else we would have over half allocated to up
 				return closestDown;
 			}
 			
-			Elevator closestStopped = getClosestElevatorFrom(event, stoppedElevators);
+			Elevator closestStopped = getClosestElevatorFrom(floorRequest, stoppedElevators);
 			
 			if (closestDown == null && closestStopped == null) {
 				return null;
@@ -183,7 +186,7 @@ public class Scheduler implements Runnable {
 			else if (closestStopped == null || closestDown.getFloor() > closestStopped.getFloor()) {
 				return closestDown;
 			}
-			else if (closestDown.getMaxOccupancy(event) <= closestStopped.getMaxOccupancy(event)) {
+			else if (closestDown.getMaxOccupancy(floorRequest) <= closestStopped.getMaxOccupancy(floorRequest)) {
 				return closestDown;
 			}
 			else {
@@ -205,9 +208,9 @@ public class Scheduler implements Runnable {
 	private boolean sendEventsToElevators() {
 		boolean sentAnEvent = false;
 		
-		Iterator<Event> iter = eventList.iterator();
+		Iterator<FloorRequest> iter = eventList.iterator();
 		while (iter.hasNext()) {
-			Event e = iter.next();
+			FloorRequest e = iter.next();
 			Elevator elevator = getClosestElevator(e);
 			
 			if (elevator == null) {
@@ -246,12 +249,12 @@ public class Scheduler implements Runnable {
 	
 	/**
 	 * Receives event from floor and stores in a queue. 
-	 * @param event
+	 * @param floorRequest
 	 */
-	public synchronized void putEventFromFloor(Event event) {
-		eventList.add(event);
-		lastFloorEvent = event;
-		Log.log("Scheduler: Recieved event from Floor. Event: " + event.toString());
+	public synchronized void putEventFromFloor(FloorRequest floorRequest) {
+		eventList.add(floorRequest);
+		lastFloorEvent = floorRequest;
+		Log.log("Scheduler: Recieved event from Floor. Event: " + floorRequest.toString());
 		
 		// notify we have events
 		notifyAll();
@@ -272,7 +275,7 @@ public class Scheduler implements Runnable {
 	 * Elevator data getter method
 	 * @return last event object received from elevator
 	 */
-	public Event getElevatorEvent() {
+	public FloorRequest getElevatorEvent() {
 		return this.elevatorEvent;
 	}
 	
@@ -280,7 +283,7 @@ public class Scheduler implements Runnable {
 	 * Returns the last floor event received
 	 * @return lastFloorEvent
 	 */
-	public Event getLastFloorEvent() {
+	public FloorRequest getLastFloorEvent() {
 		return this.lastFloorEvent;
 	}
 	

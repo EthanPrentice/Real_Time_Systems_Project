@@ -11,7 +11,7 @@ import src.Elevator;
 import src.Floor;
 import src.Scheduler;
 import src.adt.ButtonDirection;
-import src.adt.Event;
+import src.adt.message.FloorRequest;
 
 /**
  * Tests the floor's abilities to parse data from a text file, receive elevator data from the scheduler and
@@ -60,8 +60,8 @@ class FloorTest {
 			}
 		}
 		
-		Event testEvent = new Event(LocalTime.parse("14:06:10.0"), 3, ButtonDirection.DOWN, 1); //The expected last parsed Event object
-		Event getEvent = floor.getLastParsed();
+		FloorRequest testEvent = new FloorRequest(LocalTime.parse("14:06:10.0"), 3, ButtonDirection.DOWN, 1); //The expected last parsed Event object
+		FloorRequest getEvent = floor.getLastParsed();
 		
 		assertEquals(getEvent, testEvent);
 	}
@@ -110,9 +110,9 @@ class FloorTest {
 		 }
 				
 				//Expected last event
-				Event testEvent = new Event(LocalTime.parse("14:06:10.0"), 3, ButtonDirection.DOWN, 1);
+				FloorRequest testEvent = new FloorRequest(LocalTime.parse("14:06:10.0"), 3, ButtonDirection.DOWN, 1);
 				
-				Event getEvent = scheduler.getLastFloorEvent();
+				FloorRequest getEvent = scheduler.getLastFloorEvent();
 				
 				//Test the entire scheduler event queue
 				assertEquals(getEvent, testEvent);

@@ -68,7 +68,8 @@ public abstract class Message {
 		char msgHeader = (char) ((bytes[0] << 8) | bytes[1]);
 		try {
 			switch (msgHeader) {
-			
+			case 0x0001:
+				return FloorRequest.parse(bytes, srcPort);
 				
 			default: // Invalid header
 				throw new IllegalArgumentException(String.format("Illegal message header. (0x%04X)", msgHeader));

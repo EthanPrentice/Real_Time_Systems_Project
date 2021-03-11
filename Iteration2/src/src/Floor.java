@@ -1,10 +1,12 @@
 package src;
 
 import java.util.*;
+
+import src.adt.message.FloorRequest;
+
 import java.io.*;
 import java.lang.Runnable;
 
-import src.adt.Event;
 import util.Log;
 
 /**
@@ -17,7 +19,7 @@ public class Floor implements Runnable {
 	
 	private Scheduler scheduler;
 	boolean hasMoreEvents = true;
-	private Event lastParsed;
+	private FloorRequest lastParsed;
 	private int lastFloor;
 	private String filePath;
 	
@@ -72,7 +74,7 @@ public class Floor implements Runnable {
 			while (reader.hasNextLine()) {
 				String line = reader.nextLine();
 				try {
-					lastParsed = Event.parseFromString(line);
+					lastParsed = FloorRequest.parseFromString(line);				
 					
 					// sleep to simulate real time events (between 1 and 3 seconds)
 					Long sleepMs = 1000L * (rand.nextInt(3) + 1);
@@ -120,7 +122,7 @@ public class Floor implements Runnable {
 	 * Gets the last event object created by the floor
 	 * @return the last event object parsed
 	 */
-	public Event getLastParsed() {
+	public FloorRequest getLastParsed() {
 		return this.lastParsed;
 	}
 	

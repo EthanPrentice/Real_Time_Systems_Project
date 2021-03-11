@@ -1,24 +1,26 @@
-package src.adt;
+package src.adt.message;
 
 import java.time.LocalTime;
 import java.time.format.DateTimeParseException;
 
 import java.util.*;
 
+import src.adt.ButtonDirection;
+
 /**
- * Written for SYSC3303 - Group 6 - Iteration 1 @ Carleton University
+ * Written for SYSC3303 - Group 6 - Iteration 3 @ Carleton University
  * @author Ethan Prentice (101070194)
  * 
  * Data class representation of the events read in from the data file
  */
-public class Event {
+public class FloorRequest extends Message {
 	private LocalTime reqTime;
 	private int srcFloor;
 	private ButtonDirection btnDirection;
 	private int dstFloor;
 	
 	
-	public Event(LocalTime reqTime, int srcFloor, ButtonDirection btnDirection, int dstFloor) {
+	public FloorRequest(LocalTime reqTime, int srcFloor, ButtonDirection btnDirection, int dstFloor) {
 		this.reqTime = reqTime;
 		this.srcFloor = srcFloor;
 		this.btnDirection = btnDirection;
@@ -59,9 +61,24 @@ public class Event {
 	
 	
 	@Override
+	public byte[] toBytes() {
+		byte[] msgBytes = toString().getBytes();
+		
+		byte[] bytes = new byte[msgBytes.length + 2];
+		
+		bytes[0] = 0;
+		bytes[1] = 0x01;
+		
+		System.arraycopy(msgBytes, 0, bytes, 2, msgBytes.length);
+		
+		return bytes;
+	}
+	
+	
+	@Override
 	public boolean equals(Object o) {
-		if (o instanceof Event) {
-			Event e = (Event) o;
+		if (o instanceof FloorRequest) {
+			FloorRequest e = (FloorRequest) o;
 			return reqTime.equals(e.reqTime)
 				&& srcFloor == e.srcFloor
 				&& btnDirection.equals(e.btnDirection)
@@ -79,7 +96,7 @@ public class Event {
 	 * @exception IllegalArgumentException if the string cannot be parsed
 	 * @return a FloorEvent with the parsed values of s
 	 */
-	public static Event parseFromString(String s) throws IllegalArgumentException {	
+	public static FloorRequest parseFromString(String s) throws IllegalArgumentException {	
 		String[] args = s.split("\\s+");
 		if (args.length != 4) {
 			throw new IllegalArgumentException("Input string has inproper formatting.  Must include 4 variables. (" + s + ")");
@@ -113,6 +130,20 @@ public class Event {
 			throw new IllegalArgumentException("Car button could not be parsed from input string. (" + s + ")");
 		}
 		
-		return new Event(reqTime, floorNum, btnDirection, carBtn);
+		return new FloorRequest(reqTime, floorNum, btnDirection, carBtn);
 	}
+	
+	
+	/**
+	 * @param bytes The byte array to read in the FloorRequest from
+	 * @throws IllegalArgumentException if the request cannot be parsed from the bytes
+	 * 
+	 * @return A parsed FloorRequest from [bytes].
+	 */
+	public static FloorRequest parse(byte[] bytes, int srcPort) {
+		byte[] msgBytes = new byte[bytes.length-2];
+		System.arraycopy(bytes, 2, msgBytes, 0, msgBytes.length);
+		return FloorRequest.parseFromString(new String(msgBytes));
+	}
+	
 }
