@@ -54,6 +54,9 @@ class ElevatorTest {
 		assertEquals(elevator.getState(), ElevatorState.STOPPED); //Make sure the elevator is stopped and the doors are closed
 		
 		schedulerThread.start();
+		
+		scheduler.waitUntilCanRegister();
+		
 		floorThread.start();
 		elevatorThread.start();
 		
@@ -82,6 +85,9 @@ class ElevatorTest {
 		assertEquals(elevator.getState(), ElevatorState.STOPPED); //Make sure the elevator is stopped and the doors are closed
 
 		schedulerThread.start();
+		
+		scheduler.waitUntilCanRegister();
+		
 		floorThread.start();
 		elevatorThread.start();
 		
@@ -110,6 +116,9 @@ class ElevatorTest {
 		assertEquals(elevator.getState(), ElevatorState.STOPPED); //Make sure the elevator is stopped and the doors are closed
 		
 		schedulerThread.start();
+		
+		scheduler.waitUntilCanRegister();
+		
 		elevatorThread.start();
 		floorThread.start();
 		

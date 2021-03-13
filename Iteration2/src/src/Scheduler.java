@@ -1,5 +1,7 @@
 package src;
 
+import static org.junit.jupiter.api.Assertions.fail;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -23,7 +25,7 @@ public class Scheduler implements Runnable {
 	private SchedulerMessageHandler msgHandler;
 	
 	private boolean canReceiveMessages = false;
-	private Object canReceiveMessagesLock = null;
+	private Object canReceiveMessagesLock = new Object();
 	
 	private int floorPort = 0;
 	private boolean floorHasMoreEvents = true;
@@ -362,15 +364,6 @@ public class Scheduler implements Runnable {
 		}
 	}
 	
-	public void notifyOnMessagesReceivable(Object lock) {
-		canReceiveMessagesLock = lock;
-		if (canReceiveMessages) {
-			synchronized(lock) {
-				lock.notifyAll();
-			}
-		}
-	}
-	
 	public boolean canReceiveMessages() {
 		return canReceiveMessages;
 	}
@@ -380,6 +373,23 @@ public class Scheduler implements Runnable {
 		if (newVal && canReceiveMessagesLock != null) {
 			synchronized(canReceiveMessagesLock) {
 				canReceiveMessagesLock.notifyAll();
+			}
+		}
+	}
+	
+	
+	public void waitUntilCanRegister() {
+		if (canReceiveMessages) {
+			return;
+		}
+			
+		while (!canReceiveMessages()) {
+			try {
+				synchronized(canReceiveMessagesLock) {
+					canReceiveMessagesLock.wait();
+				}
+			} catch (InterruptedException e) {
+				fail("Thread interrupted!");
 			}
 		}
 	}

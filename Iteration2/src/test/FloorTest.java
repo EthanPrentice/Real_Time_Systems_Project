@@ -50,6 +50,7 @@ class FloorTest {
 	void testFloorParsing() {
 		System.out.println("----Floor Parsing Test----");
 		schedulerThread.start();
+		scheduler.waitUntilCanRegister();
 		elevatorThread.start();
 		floorThread.start();
 		
@@ -76,6 +77,7 @@ class FloorTest {
 	void testFloorReceive() {
 		System.out.println("----Floor Receive Request----");
 		schedulerThread.start();
+		scheduler.waitUntilCanRegister();
 		elevatorThread.start();
 		floorThread.start();
 		
@@ -102,6 +104,7 @@ class FloorTest {
 	 void testFloorSend() {
 		 System.out.println("----Floor Send Test----");
 		 schedulerThread.start();
+		 scheduler.waitUntilCanRegister();
 		 elevatorThread.start();
 		 floorThread.start();
 				

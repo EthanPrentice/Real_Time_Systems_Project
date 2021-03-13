@@ -1,7 +1,6 @@
 package src;
 
 import java.io.IOException;
-import java.net.DatagramSocket;
 
 import src.adt.MessageHandler;
 import src.adt.message.FloorRequest;
