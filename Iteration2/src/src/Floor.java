@@ -129,6 +129,11 @@ public class Floor implements Runnable {
 	}
 	
 	
+	/**
+	 * Receive and handle updates to elevator statuses when they reach a floor
+	 * @param elevatorId
+	 * @param status
+	 */
 	public void receiveElevatorStatus(char elevatorId, ElevatorStatus status) {
 		String format;
 		

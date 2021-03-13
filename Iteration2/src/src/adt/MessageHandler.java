@@ -12,7 +12,14 @@ import src.adt.message.Message;
 import src.adt.message.UnparsableMessage;
 import util.Log;
 
-public abstract class MessageHandler {
+/**
+ * Written for SYSC3303 - Group 6 - Iteration 3 @ Carleton University
+ * @author Ethan Prentice (101070194)
+ * 
+ * Manages how to handle events that are sent to the Floor
+ * It also acts as a way to send messages to the Scheduler from the Floor
+ */
+public abstract class MessageHandler implements Runnable {
 	
 	protected DatagramSocket sock;
 	

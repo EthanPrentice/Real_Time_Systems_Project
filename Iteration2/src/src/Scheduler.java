@@ -107,7 +107,11 @@ public class Scheduler implements Runnable {
 			|| (status.getState() == ElevatorState.MOVING_DOWN && status.getFloor() >= floorRequest.getSourceFloor() && floorRequest.getDirection() == ButtonDirection.DOWN);
 	}
 	
-	
+	/**
+	 * @param floorRequest
+	 * @param elevators
+	 * @return the elevator in [elevators] that is closest to the srcFloor of [floorRequest]
+	 */
 	private Character getClosestElevatorFrom(FloorRequest floorRequest, HashSet<Character> elevators) {
 		Character closestElevator = null;
 		ElevatorStatus closestStatus = null;
@@ -146,6 +150,10 @@ public class Scheduler implements Runnable {
 		return closestElevator;
 	}
 	
+	/**
+	 * @param floorRequest
+	 * @return the closest elevator that can service [floorRequest] in it's current state, as defined by the canSendEventToElevator method.
+	 */
 	private Character getClosestElevator(FloorRequest floorRequest) {
 		Character closestElevator = null;
 		

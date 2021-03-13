@@ -12,7 +12,14 @@ import src.adt.message.StopRequest;
 import src.adt.message.StopResponse;
 import util.Log;
 
-public class ElevatorMessageHandler extends MessageHandler implements Runnable {
+/**
+ * Written for SYSC3303 - Group 6 - Iteration 3 @ Carleton University
+ * @author Ethan Prentice (101070194)
+ * 
+ * Manages how to handle events that are sent to the Elevator
+ * It also acts as a way to send messages to the Scheduler from the Elevator
+ */
+public class ElevatorMessageHandler extends MessageHandler {
 	
 	private Elevator elevator;
 	
