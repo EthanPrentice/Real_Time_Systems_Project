@@ -101,12 +101,12 @@ public class ElevatorMessageHandler extends MessageHandler implements Runnable {
 	 * QoL method since we will only be sending to the Scheduler from the Elevators
 	 * @param msg the message to be sent to the Scheduler
 	 */
-	public void send(Message msg) {
+	public synchronized void send(Message msg) {
 		super.send(msg, Scheduler.RECEIVE_PORT);
 	}
 
 	
-	public void requestStop() {
+	public synchronized void requestStop() {
 		if (!stopRequested) {
 			stopRequested = true;
 			

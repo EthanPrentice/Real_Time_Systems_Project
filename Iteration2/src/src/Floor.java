@@ -65,7 +65,6 @@ public class Floor implements Runnable {
 	 * @param event
 	 */
 	public synchronized void onElevatorFloorChanged(Elevator e, int floor) {
-		lastFloor = floor;
 		Log.log("Floor: Received event from Scheduler. Elevator now on floor: " + floor);
 	}
 	
@@ -128,6 +127,7 @@ public class Floor implements Runnable {
 	
 	public void receiveElevatorStatus(char elevatorId, ElevatorStatus status) {
 		String format;
+		lastFloor = status.getFloor();
 		
 		switch (status.getState()) {
 		case MOVING_UP:

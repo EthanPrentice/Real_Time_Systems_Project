@@ -47,6 +47,8 @@ class FloorTest {
 	@Test
 	void testFloorParsing() {
 		
+		schedulerThread.start();
+		elevatorThread.start();
 		floorThread.start();
 		
 		// wait for threads to end
@@ -72,8 +74,8 @@ class FloorTest {
 	void testFloorReceive() {
 		
 		schedulerThread.start();
-		floorThread.start();
 		elevatorThread.start();
+		floorThread.start();
 		
 		
 		// wait for threads to end
@@ -96,6 +98,9 @@ class FloorTest {
 	 */
 	 @Test
 	 void testFloorSend() {
+		 
+		 schedulerThread.start();
+		 elevatorThread.start();
 		 floorThread.start();
 				
 		 // wait for threads to end
