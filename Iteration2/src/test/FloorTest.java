@@ -16,7 +16,7 @@ import src.adt.message.FloorRequest;
 /**
  * Tests the floor's abilities to parse data from a text file, receive elevator data from the scheduler and
  * send event data to the scheduler
- * Written for SYSC3303 - Group 6 - Iteration 2 @ Carleton University
+ * Written for SYSC3303 - Group 6 - Iteration 3 @ Carleton University
  * @author Nicholas Milani 101075096
  *
  */

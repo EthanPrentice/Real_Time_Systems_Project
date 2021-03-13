@@ -14,12 +14,13 @@ import src.Elevator;
 import src.Floor;
 import src.Scheduler;
 import src.adt.ButtonDirection;
+import src.adt.ElevatorState;
 import src.adt.message.FloorRequest;
 import util.Config;
 
 /**
- * Tests the scheduler's ability to send and receive data to and from the elevator and floor systems
- * Written for SYSC3303 - Group 6 - Iteration 2 @ Carleton University
+ * Tests all functions and paths of the scheduler state machine
+ * Written for SYSC3303 - Group 6 - Iteration 3 @ Carleton University
  * @author Nicholas Milani 101075096
  *
  */
@@ -72,7 +73,7 @@ class SchedulerTest {
 	}
 	
 	/**
-	 * Test the event data sent to the elevator
+	 * Test the event data sent to one elevator
 	 */
 	@Test
 	void testSendEvent() {
@@ -125,8 +126,13 @@ class SchedulerTest {
 			}
 		}
 		
-		assertEquals(elevator.getFloor(), 7);
-		assertEquals(elevator2.getFloor(), 2);
+		//One elevator must end up on floor 7 and one must end up on floor 2
+		if(elevator.getFloor() == 7) assertEquals(elevator2.getFloor(), 2);
+		else if(elevator.getFloor() == 2) assertEquals(elevator2.getFloor(), 7);
+		else fail("Elevator(s) stopped at wrong floor");
+		
+		assertEquals(elevator.getState(), ElevatorState.STOPPED); //Make sure the elevator is stopped and the doors are closed
+		assertEquals(elevator2.getState(), ElevatorState.STOPPED); //Make sure the elevator is stopped and the doors are closed
 	}
 	
 	
