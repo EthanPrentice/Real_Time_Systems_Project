@@ -19,6 +19,7 @@ public class Scheduler implements Runnable {
 	
 	public final static int RECEIVE_PORT = 23;
 	
+	private Thread msgHandlerThread;
 	private SchedulerMessageHandler msgHandler;
 	
 	private int floorPort = 0;
@@ -54,8 +55,8 @@ public class Scheduler implements Runnable {
 	 */
 	public Scheduler() {		
 		msgHandler = new SchedulerMessageHandler(this);
-		Thread t = new Thread(msgHandler, "Scheduler MsgHandler");
-		t.start();
+		msgHandlerThread = new Thread(msgHandler, "Scheduler MsgHandler");
+		msgHandlerThread.start();
 	}
 	
 	
@@ -73,7 +74,15 @@ public class Scheduler implements Runnable {
 					if (eventList.isEmpty() && !floorHasMoreEvents) {
 						stopElevators();
 						msgHandler.requestStop();
-						return;
+						
+						// Exit once the message handler has stopped
+						try {
+							msgHandlerThread.join();
+							return;
+						} catch (InterruptedException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
 					}
 					
 				} catch (InterruptedException e) {

@@ -19,6 +19,7 @@ import util.Log;
  */
 public class Floor implements Runnable {
 	
+	private Thread msgHandlerThread;
 	private FloorMessageHandler msgHandler;
 	
 	boolean hasMoreEvents = true;
@@ -32,7 +33,7 @@ public class Floor implements Runnable {
 	
 	public Floor() {
 		msgHandler = new FloorMessageHandler(this);
-		Thread msgHandlerThread = new Thread(msgHandler, "Floor MsgHandler");
+		msgHandlerThread = new Thread(msgHandler, "Floor MsgHandler");
 		msgHandlerThread.start();
 	}
 	
@@ -50,6 +51,12 @@ public class Floor implements Runnable {
 			readFromFile(file);
 		}
 		
+		try {
+			msgHandlerThread.join();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 	

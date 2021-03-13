@@ -20,6 +20,7 @@ public class Elevator implements Runnable {
 	
 	// Handles the sending and receiving of Messages
 	// Is run in a separate thread, started in constructor
+	Thread msgHandlerThread;
 	ElevatorMessageHandler msgHandler;
 	
 	// Unique identifier for this instance of the Elevator
@@ -66,8 +67,8 @@ public class Elevator implements Runnable {
 		
 		Thread.currentThread().setName(name);
 		
-		Thread t = new Thread(msgHandler, name + " MsgHandler");
-		t.start();
+		msgHandlerThread = new Thread(msgHandler, name + " MsgHandler");
+		msgHandlerThread.start();
 	}
 	
 
@@ -86,12 +87,16 @@ public class Elevator implements Runnable {
 						// if elevator has no events and has been signaled to exit, exit
 						if (stopRequested && floorQueue.isEmpty()) {
 							msgHandler.requestStop();
-							return;
+							break;
 						}
 					}
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
+			}
+			
+			if (stopRequested && floorQueue.isEmpty()) {
+				break;
 			}
 
 			targetFloor = floorQueue.remove();
@@ -115,6 +120,14 @@ public class Elevator implements Runnable {
 		}
 		
 		msgHandler.requestStop();
+		
+		// Exit once the message handler has stopped
+		try {
+			msgHandlerThread.join();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	/**
