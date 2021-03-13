@@ -30,9 +30,11 @@ class ElevatorTest {
 	
 	@BeforeEach
 	void setup() {
-		floor = new Floor();
-		elevator = new Elevator();
 		scheduler = new Scheduler();
+		elevator = new Elevator();
+		floor = new Floor();
+		
+		
 		
 		floorThread = new Thread(floor);
 		elevatorThread = new Thread(elevator);
@@ -99,10 +101,10 @@ class ElevatorTest {
 		floor.setFilePath("res/upper_floor_test.txt");
 		
 		schedulerThread.start();
-		floorThread.start();
 		elevatorThread.start();
+		floorThread.start();
 		
-		// wait for threads to end
+		//wait for threads to end
 		while(floorThread.isAlive() || schedulerThread.isAlive() || elevatorThread.isAlive()) {
 			try {
 				Thread.sleep(100L);

@@ -95,7 +95,7 @@ public class SchedulerMessageHandler extends MessageHandler implements Runnable 
 		sock.close();
 	}
 	
-	public void requestStop() {
+	public synchronized void requestStop() {
 		stopRequested = true;
 		if (activeElevators <= 0) {
 			// All elevators have exited.  This means we can shutdown the Floor as well
@@ -105,7 +105,7 @@ public class SchedulerMessageHandler extends MessageHandler implements Runnable 
 		}
 	}
 	
-	private void requestFloorStop() {
+	private synchronized void requestFloorStop() {
 		int floorPort = scheduler.getFloorPort();
 		if (floorPort != 0) {
 			send(new StopRequest(), floorPort);
