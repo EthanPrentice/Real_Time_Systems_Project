@@ -32,7 +32,7 @@ public class Floor implements Runnable {
 	private Random rand = new Random();
 	
 	
-	public Floor() {
+	public void init() {
 		msgHandler = new FloorMessageHandler(this);
 		msgHandlerThread = new Thread(msgHandler, "Floor MsgHandler");
 		msgHandlerThread.start();
@@ -41,6 +41,8 @@ public class Floor implements Runnable {
 	
 	@Override
 	public void run() {
+		init();
+		
 		// hard code file location for now
 		if(filePath == null) {
 			File file = new File("res/test_data.txt");
@@ -58,6 +60,8 @@ public class Floor implements Runnable {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		
+		Log.log("EXITING", Log.Level.DEBUG);
 	}
 	
 	
@@ -89,10 +93,12 @@ public class Floor implements Runnable {
 					lastParsed = FloorRequest.parseFromString(line);
 					
 					if (!Config.USE_ZERO_FLOOR_TIME) {
-						// sleep to simulate real time events (between 1 and 3 seconds)
-						Long sleepMs = 1000L * (rand.nextInt(3) + 1);
-						sleepMs = 1000L;
+						// sleep to simulate real time events (between 2 and 6 seconds)
+						Long sleepMs = 2000L * (rand.nextInt(3) + 1);
 						Thread.sleep(sleepMs); // TODO: change this timing to be timing in file
+					}
+					else {
+						Thread.sleep(50L);
 					}
 					
 					Log.log("Floor: Sent event to Scheduler. Event: " + lastParsed.toString(), Log.Level.INFO);

@@ -28,10 +28,11 @@ public class ElevatorMessageHandler extends MessageHandler {
 	
 	public ElevatorMessageHandler(Elevator elevator) {
 		this.elevator = elevator;
-		
+	}
+	
+	public void init() {
 		try {
 			// Construct & bind DatagramSocket to any available port
-			sock = new DatagramSocket();
 			Log.log("Opened socket on port: " + sock.getLocalPort());
 			
 			// Register with the Scheduler so it knows the port of the elevator with this ID
@@ -54,7 +55,6 @@ public class ElevatorMessageHandler extends MessageHandler {
 				System.exit(-1);
 			}
 		}
-		
 	}
 
 	
@@ -63,6 +63,8 @@ public class ElevatorMessageHandler extends MessageHandler {
 	 */
 	@Override
 	public void run() {
+		init();
+		
 		while (!stopRequested) {
 			try {
 				Message received = receive();
@@ -91,12 +93,13 @@ public class ElevatorMessageHandler extends MessageHandler {
 			} catch (IOException e) {
 				if (!stopRequested) {
 					e.printStackTrace();
+					Log.log("EXITING", Log.Level.DEBUG);
 					System.exit(-1);
 				}
 			}
 
 		}
-		
+		Log.log("EXITING", Log.Level.DEBUG);
 	}
 
 	
@@ -104,17 +107,23 @@ public class ElevatorMessageHandler extends MessageHandler {
 	 * QoL method since we will only be sending to the Scheduler from the Elevators
 	 * @param msg the message to be sent to the Scheduler
 	 */
-	public synchronized void send(Message msg) {
+	public void send(Message msg) {
 		super.send(msg, Scheduler.RECEIVE_PORT);
 	}
 
 	
-	public synchronized void requestStop() {
+	public void requestStop() {
 		if (!stopRequested) {
 			stopRequested = true;
 			
 			// notify Scheduler the Elevator is stopping
 			send(new StopResponse());
+//			try {
+//				receive();
+//			} catch (IOException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			}
 			
 			sock.close();
 		}

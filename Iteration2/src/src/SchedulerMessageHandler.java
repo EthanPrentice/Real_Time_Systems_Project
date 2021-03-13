@@ -35,6 +35,7 @@ public class SchedulerMessageHandler extends MessageHandler {
 		this.scheduler = scheduler;
 		
 		Log.log("Scheduler ready to register clients.", Log.Level.INFO);
+		scheduler.setCanReceiveMessages(true);
 	}
 	
 	
@@ -113,7 +114,8 @@ public class SchedulerMessageHandler extends MessageHandler {
 			requestFloorStop();
 			sock.close();
 		}
-
+		
+		Log.log("EXITING", Log.Level.DEBUG);
 	}
 	
 	public void requestStop() {

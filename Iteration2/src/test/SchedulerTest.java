@@ -5,15 +5,12 @@ package test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.time.LocalTime;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import src.Elevator;
 import src.Floor;
 import src.Scheduler;
-import src.adt.ButtonDirection;
 import src.adt.message.FloorRequest;
 import util.Config;
 
@@ -51,6 +48,9 @@ class SchedulerTest {
 	void testFloorEventReceived() {
 		System.out.println("----Scheduler Receive Test----");
 		schedulerThread.start();
+		
+		waitToRegister();
+		
 		elevatorThread.start();
 		floorThread.start();
 		
@@ -61,14 +61,11 @@ class SchedulerTest {
 			} catch(InterruptedException e) {
 				fail("Thread interrupted!");
 			}
-		}
-		
-		//Expected last event
-		FloorRequest testEvent = new FloorRequest(LocalTime.parse("14:06:10.0"), 3, ButtonDirection.DOWN, 1);
-		
+		}	
 		FloorRequest getEvent = scheduler.getLastFloorEvent();
+		FloorRequest floorEvent = floor.getLastParsed();
 		
-		assertEquals(getEvent, testEvent);
+		assertEquals(getEvent, floorEvent);
 	}
 	
 	/**
@@ -78,25 +75,27 @@ class SchedulerTest {
 	void testSendEvent() {
 		System.out.println("----Scheduler Send Test----");
 		schedulerThread.start();
+		
+		waitToRegister();
+		
 		floorThread.start();
 		elevatorThread.start();
 		
 		 // wait for threads to end
-		 while(floorThread.isAlive() || schedulerThread.isAlive() || elevatorThread.isAlive()) {
-			 try {
-				 Thread.sleep(100L);
-				 } catch(InterruptedException e) {
-					 fail("Thread interrupted!");
-				 	}
-		 }
+		while(floorThread.isAlive() || schedulerThread.isAlive() || elevatorThread.isAlive()) {
+			try {
+				Thread.sleep(100L);
+			} catch(InterruptedException e) {
+				fail("Thread interrupted!");
+			}
+		}
 		 
-			//Expected last event
-			FloorRequest testEvent = new FloorRequest(LocalTime.parse("14:06:10.0"), 3, ButtonDirection.DOWN, 1);
+		//Expected last event
+		FloorRequest testEvent = FloorRequest.parseFromString("15:06:10 2 UP 5");
+		FloorRequest getEvent = elevator.getLastEvent();
 			
-			FloorRequest getEvent = elevator.getLastEvent();
-			
-			//Test the entire scheduler event queue
-			assertEquals(getEvent, testEvent);
+		//Test the entire scheduler event queue
+		assertEquals(getEvent, testEvent);
 	}
 	
 	/**
@@ -112,6 +111,9 @@ class SchedulerTest {
 		Thread elevator2Thread = new Thread(elevator2, "Elevator 2");
 		
 		schedulerThread.start();
+		
+		waitToRegister();
+		
 		elevatorThread.start();
 		elevator2Thread.start();
 		floorThread.start();
@@ -125,9 +127,21 @@ class SchedulerTest {
 			}
 		}
 		
-		assertEquals(elevator.getFloor(), 7);
-		assertEquals(elevator2.getFloor(), 2);
+		assertTrue((elevator.getFloor() == 7 && elevator2.getFloor() == 2) || (elevator.getFloor() == 2 && elevator2.getFloor() == 7));
 	}
 	
 	
+	private void waitToRegister() {
+		Object canReceiveLock = new Object();
+		scheduler.notifyOnMessagesReceivable(canReceiveLock);
+		while (!scheduler.canReceiveMessages()) {
+			try {
+				synchronized(canReceiveLock) {
+					canReceiveLock.wait();
+				}
+			} catch (InterruptedException e) {
+				fail("Thread interrupted!");
+			}
+		}
+	}
 }

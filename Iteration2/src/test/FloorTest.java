@@ -12,6 +12,7 @@ import src.Floor;
 import src.Scheduler;
 import src.adt.ButtonDirection;
 import src.adt.message.FloorRequest;
+import util.Config;
 
 /**
  * Tests the floor's abilities to parse data from a text file, receive elevator data from the scheduler and
@@ -31,6 +32,7 @@ class FloorTest {
 	
 	@BeforeEach
 	void setup() {
+		Config.USE_ZERO_FLOOR_TIME = true;
 		scheduler = new Scheduler();
 		elevator = new Elevator();
 		floor = new Floor();
@@ -88,7 +90,7 @@ class FloorTest {
 		}
 		
 
-		assertEquals(floor.getLastFloor(), 1); //The expected last floor 1
+		assertEquals(floor.getLastFloor(), 5); //The expected last floor 5
 		
 	}
 

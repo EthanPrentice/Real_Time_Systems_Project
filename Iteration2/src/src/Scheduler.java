@@ -22,6 +22,9 @@ public class Scheduler implements Runnable {
 	private Thread msgHandlerThread;
 	private SchedulerMessageHandler msgHandler;
 	
+	private boolean canReceiveMessages = false;
+	private Object canReceiveMessagesLock = null;
+	
 	private int floorPort = 0;
 	private boolean floorHasMoreEvents = true;
 	
@@ -61,13 +64,15 @@ public class Scheduler implements Runnable {
 	
 	
 	@Override
-	public synchronized void run() {
+	public void run() {
 		while (!stopRequested) {
 			
 			// send as all events to the elevators that can be sent in their current states
 			while (eventList.isEmpty() || !sendEventsToElevators()) {				
 				try {
-					wait();
+					synchronized(this) {
+						wait();
+					}
 					
 					// if no more events in local queue or coming from the floor, stop elevator thread when possible and stop scheduler thread
 					// this should exit the application once elevator threads have stopped
@@ -90,6 +95,8 @@ public class Scheduler implements Runnable {
 				}
 			}			
 		}
+		
+		Log.log("EXITING", Log.Level.DEBUG);
 	}
 	
 	
@@ -237,7 +244,7 @@ public class Scheduler implements Runnable {
 	 *   
 	 *   @return true if there were events sent.  false otherwise
 	 */
-	private boolean sendEventsToElevators() {
+	private synchronized boolean sendEventsToElevators() {
 		boolean sentAnEvent = false;
 		
 		Iterator<FloorRequest> iter = eventList.iterator();
@@ -355,7 +362,27 @@ public class Scheduler implements Runnable {
 		}
 	}
 	
+	public void notifyOnMessagesReceivable(Object lock) {
+		canReceiveMessagesLock = lock;
+		if (canReceiveMessages) {
+			synchronized(lock) {
+				lock.notifyAll();
+			}
+		}
+	}
 	
+	public boolean canReceiveMessages() {
+		return canReceiveMessages;
+	}
+	
+	public void setCanReceiveMessages(boolean newVal) {
+		canReceiveMessages = newVal;
+		if (newVal && canReceiveMessagesLock != null) {
+			synchronized(canReceiveMessagesLock) {
+				canReceiveMessagesLock.notifyAll();
+			}
+		}
+	}
 	
 	
 	/**

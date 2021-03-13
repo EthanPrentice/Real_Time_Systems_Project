@@ -57,10 +57,11 @@ public class Elevator implements Runnable {
 	// testing purposes
 	private FloorRequest lastEvent;
 	
+	
 	/*
 	 * Initializes variables and runs the MessageHandler in a separate thread
 	 */
-	public Elevator() {		
+	public void init() {		
 		msgHandler = new ElevatorMessageHandler(this);
 		elevatorId = (char) msgHandler.getPort();
 		name = "Elevator " + (int) elevatorId;
@@ -76,7 +77,9 @@ public class Elevator implements Runnable {
 	 * Runs the thread. Gets event from the Scheduler and then sends event back to the Scheduler
 	 */
 	@Override
-	public void run() {		
+	public void run() {
+		init();
+		
 		while(!stopRequested || !floorQueue.isEmpty()) {         // while elevator is running, or has more events in it's queue
 
 			while (floorQueue.isEmpty()) {
@@ -128,6 +131,8 @@ public class Elevator implements Runnable {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		
+		Log.log("EXITING", Log.Level.DEBUG);
 	}
 
 	/**
@@ -165,14 +170,25 @@ public class Elevator implements Runnable {
 	}
 	
 	/**
-	 * 
+	 * Update the floor occupancy to increase between the src and dst floors of the request
 	 */
 	private void addEventOccupancy(FloorRequest floorRequest) {
-		for (int i = floorRequest.getSourceFloor() - 1; i < floorRequest.getDestFloor(); ++i) {
-			++floorOccupancy[i];
+		if (floorRequest.getDirection() == ButtonDirection.UP) {
+			for (int i = floorRequest.getSourceFloor() - 1; i < floorRequest.getDestFloor(); ++i) {
+				++floorOccupancy[i];
+			}
 		}
+		else {
+			for (int i = floorRequest.getDestFloor() - 1; i < floorRequest.getSourceFloor(); ++i) {
+				++floorOccupancy[i];
+			}
+		}
+
 	}
 	
+	/**
+	 * Get the max occupancy between minFloor and maxFloor
+	 */
 	private int getMaxOccupancy(int minFloor, int maxFloor) {
 		int occupancy = 0;
 		for (int i = minFloor; i <= maxFloor; ++i) {
@@ -181,6 +197,9 @@ public class Elevator implements Runnable {
 		return occupancy;
 	}
 	
+	/**
+	 * Get the max occupancy during the event of [e]
+	 */
 	public int getMaxOccupancy(FloorRequest e) {
 		if (e.getDirection() == ButtonDirection.UP) {
 			return getMaxOccupancy(e.getSourceFloor(), e.getDestFloor());
@@ -196,8 +215,14 @@ public class Elevator implements Runnable {
 
 		// Doors open, wait a bit to close
 		try {
-			// TODO: change to actual load time
-			Thread.sleep(500L);           // sleep for 500ms second
+			// NOTE: This uses actual load time from data from iteration 0
+			if (!Config.USE_ZERO_FLOOR_TIME) {
+				Thread.sleep(9350L);
+			}
+			else {
+				Thread.sleep(50L);
+			}
+			
 		} catch (InterruptedException e) {
 			Log.log(e.getMessage());
 		}
@@ -225,8 +250,13 @@ public class Elevator implements Runnable {
 			msgHandler.send(m);
 
 			try {
-				// TODO: change to real time between floors
-				Thread.sleep(1000L);
+				// NOTE: This uses actual time between floors from data from iteration 0
+				if (!Config.USE_ZERO_FLOOR_TIME) {
+					Thread.sleep(4750L);
+				}
+				else {
+					Thread.sleep(50L);
+				}
 
 				Log.log("Elevator reached floor: " + currFloor, Log.Level.INFO);
 			} catch (InterruptedException e) {

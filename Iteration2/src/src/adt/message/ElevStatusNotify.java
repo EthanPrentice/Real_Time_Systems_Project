@@ -7,6 +7,7 @@ import java.nio.ByteBuffer;
 
 import src.adt.ElevatorState;
 import src.adt.ElevatorStatus;
+import util.Config;
 
 
 /**
@@ -85,7 +86,7 @@ public class ElevStatusNotify extends Message {
 		char elevatorId = buff.getChar();
 		int currFloor = buff.getInt();
 		
-		int[] floorOccupancy = new int[buff.remaining() / 4];
+		int[] floorOccupancy = new int[Config.NUM_FLOORS];
 		for (int i = 0; i < floorOccupancy.length; ++i) {
 			floorOccupancy[i] = buff.getInt();
 		}

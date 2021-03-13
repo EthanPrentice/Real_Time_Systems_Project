@@ -12,6 +12,7 @@ import src.Elevator;
 import src.Floor;
 import src.Scheduler;
 import src.adt.*;
+import util.Config;
 
 /**
  * Tests all possible paths for the Elevator state machine using varying test data
@@ -30,6 +31,7 @@ class ElevatorTest {
 	
 	@BeforeEach
 	void setup() {
+		Config.USE_ZERO_FLOOR_TIME = true;
 		scheduler = new Scheduler();
 		elevator = new Elevator();
 		floor = new Floor();

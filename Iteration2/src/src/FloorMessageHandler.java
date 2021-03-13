@@ -85,6 +85,8 @@ public class FloorMessageHandler extends MessageHandler {
 		send(new StopResponse());
 		
 		sock.close();
+		
+		Log.log("EXITING", Log.Level.DEBUG);
 	}
 	
 	
