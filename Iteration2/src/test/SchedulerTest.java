@@ -15,6 +15,7 @@ import src.Floor;
 import src.Scheduler;
 import src.adt.ButtonDirection;
 import src.adt.message.FloorRequest;
+import util.Config;
 
 /**
  * Tests the scheduler's ability to send and receive data to and from the elevator and floor systems
@@ -33,14 +34,14 @@ class SchedulerTest {
 	
 	@BeforeEach
 	void setup() {
-		floor = new Floor();
-		elevator = new Elevator();
+		Config.USE_ZERO_FLOOR_TIME = true;
 		scheduler = new Scheduler();
+		elevator = new Elevator();
+		floor = new Floor();
 		
-		schedulerThread = new Thread(scheduler);
-		floorThread = new Thread(floor);
-		elevatorThread = new Thread(elevator);
-		
+		schedulerThread = new Thread(scheduler, "Scheduler");
+		floorThread = new Thread(floor, "Floor");
+		elevatorThread = new Thread(elevator, "Elevator 1");
 	}
 	
 	/**
@@ -48,6 +49,9 @@ class SchedulerTest {
 	 */
 	@Test
 	void testFloorEventReceived() {
+		System.out.println("----Scheduler Receive Test----");
+		schedulerThread.start();
+		elevatorThread.start();
 		floorThread.start();
 		
 		// wait for threads to end
@@ -72,7 +76,7 @@ class SchedulerTest {
 	 */
 	@Test
 	void testSendEvent() {
-		
+		System.out.println("----Scheduler Send Test----");
 		schedulerThread.start();
 		floorThread.start();
 		elevatorThread.start();
@@ -95,7 +99,35 @@ class SchedulerTest {
 			assertEquals(getEvent, testEvent);
 	}
 	
-	
+	/**
+	 * Test scheduling algorithm for multiple elevators
+	 */
+	@Test
+	void testMultipleElevators() {
+		System.out.println("----Multiple Elevator Scheduling Test----");
+		floor.setFilePath("res/multiple_elevator_test.txt");
+		
+		//Create a second elevator
+		Elevator elevator2 = new Elevator();
+		Thread elevator2Thread = new Thread(elevator2, "Elevator 2");
+		
+		schedulerThread.start();
+		elevatorThread.start();
+		elevator2Thread.start();
+		floorThread.start();
+		
+		// wait for threads to end
+		while(floorThread.isAlive() || schedulerThread.isAlive() || elevatorThread.isAlive() || elevator2Thread.isAlive()) {
+			try {
+				Thread.sleep(100L);
+			} catch(InterruptedException e) {
+				fail("Thread interrupted!");
+			}
+		}
+		
+		assertEquals(elevator.getFloor(), 7);
+		assertEquals(elevator2.getFloor(), 2);
+	}
 	
 	
 }

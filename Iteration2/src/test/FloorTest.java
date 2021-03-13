@@ -31,13 +31,13 @@ class FloorTest {
 	
 	@BeforeEach
 	void setup() {
-		floor = new Floor();
-		elevator = new Elevator();
 		scheduler = new Scheduler();
+		elevator = new Elevator();
+		floor = new Floor();
 		
-		schedulerThread = new Thread(scheduler);
-		floorThread = new Thread(floor);
-		elevatorThread = new Thread(elevator);
+		schedulerThread = new Thread(scheduler, "Scheduler");
+		floorThread = new Thread(floor, "Floor");
+		elevatorThread = new Thread(elevator, "Elevator");
 		
 	}
 	
@@ -46,7 +46,7 @@ class FloorTest {
 	 */
 	@Test
 	void testFloorParsing() {
-		
+		System.out.println("----Floor Parsing Test----");
 		schedulerThread.start();
 		elevatorThread.start();
 		floorThread.start();
@@ -72,7 +72,7 @@ class FloorTest {
 	 */
 	@Test
 	void testFloorReceive() {
-		
+		System.out.println("----Floor Receive Request----");
 		schedulerThread.start();
 		elevatorThread.start();
 		floorThread.start();
@@ -98,7 +98,7 @@ class FloorTest {
 	 */
 	 @Test
 	 void testFloorSend() {
-		 
+		 System.out.println("----Floor Send Test----");
 		 schedulerThread.start();
 		 elevatorThread.start();
 		 floorThread.start();
