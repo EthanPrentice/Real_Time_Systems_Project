@@ -33,12 +33,17 @@ public class ElevatorStatus {
 		return occupancy;
 	}
 	
-	public int getMaxOccupancy(FloorRequest e) {
-		if (e.getDirection() == ButtonDirection.UP) {
-			return getMaxOccupancy(e.getSourceFloor(), e.getDestFloor());
+	/**
+	 * 
+	 * @param req
+	 * @return
+	 */
+	public int getMaxOccupancy(FloorRequest req) {
+		if (req.getDirection() == ButtonDirection.UP) {
+			return getMaxOccupancy(req.getSourceFloor(), req.getDestFloor());
 		}
 		else {
-			return getMaxOccupancy(e.getDestFloor(), e.getSourceFloor());
+			return getMaxOccupancy(req.getDestFloor(), req.getSourceFloor());
 		}
 	}
 	

@@ -16,12 +16,13 @@ import java.util.PriorityQueue;
  * @author Nikhil Kharbanda 101012041
  * @edited Ethan Prentice (101070194)
  */
-
-
 public class Elevator implements Runnable {
 	
+	// Handles the sending and receiving of Messages
+	// Is run in a separate thread, started in constructor
 	ElevatorMessageHandler msgHandler;
 	
+	// Unique identifier for this instance of the Elevator
 	private char elevatorId;
 	
 	// Elevator name to differentiate elevators in the logs
@@ -55,7 +56,9 @@ public class Elevator implements Runnable {
 	// testing purposes
 	private FloorRequest lastEvent;
 	
-	
+	/*
+	 * Initializes variables and runs the MessageHandler in a separate thread
+	 */
 	public Elevator() {		
 		msgHandler = new ElevatorMessageHandler(this);
 		elevatorId = (char) msgHandler.getPort();
@@ -132,9 +135,11 @@ public class Elevator implements Runnable {
 			}
 		}
 
+		// Add floors to stop at to the queue
 		floorQueue.add(e.getDestFloor());
 		floorQueue.add(e.getSourceFloor());
 		
+		// Update floor occupancies
 		addEventOccupancy(e);
 		
 		lastEvent = e;
@@ -146,7 +151,9 @@ public class Elevator implements Runnable {
 
 	}
 	
-	
+	/**
+	 * 
+	 */
 	private void addEventOccupancy(FloorRequest floorRequest) {
 		for (int i = floorRequest.getSourceFloor() - 1; i < floorRequest.getDestFloor(); ++i) {
 			++floorOccupancy[i];
