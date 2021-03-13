@@ -107,11 +107,13 @@ public class ElevatorMessageHandler extends MessageHandler implements Runnable {
 
 	
 	public void requestStop() {
-		stopRequested = true;
-		
-		// notify Scheduler the Elevator is stopping
-		send(new StopResponse());
-		
-		sock.close();
+		if (!stopRequested) {
+			stopRequested = true;
+			
+			// notify Scheduler the Elevator is stopping
+			send(new StopResponse());
+			
+			sock.close();
+		}
 	}
 }
