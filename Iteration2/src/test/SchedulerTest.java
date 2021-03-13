@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package test;
 
@@ -11,12 +11,13 @@ import org.junit.jupiter.api.Test;
 import src.Elevator;
 import src.Floor;
 import src.Scheduler;
+import src.adt.ElevatorState;
 import src.adt.message.FloorRequest;
 import util.Config;
 
 /**
- * Tests the scheduler's ability to send and receive data to and from the elevator and floor systems
- * Written for SYSC3303 - Group 6 - Iteration 2 @ Carleton University
+ * Tests all functions and paths of the scheduler state machine
+ * Written for SYSC3303 - Group 6 - Iteration 3 @ Carleton University
  * @author Nicholas Milani 101075096
  *
  */
@@ -28,19 +29,19 @@ class SchedulerTest {
 	private Thread floorThread;
 	private Thread elevatorThread;
 	private Thread schedulerThread;
-	
+
 	@BeforeEach
 	void setup() {
 		Config.USE_ZERO_FLOOR_TIME = true;
 		scheduler = new Scheduler();
 		elevator = new Elevator();
 		floor = new Floor();
-		
+
 		schedulerThread = new Thread(scheduler, "Scheduler");
 		floorThread = new Thread(floor, "Floor");
 		elevatorThread = new Thread(elevator, "Elevator 1");
 	}
-	
+
 	/**
 	 * Test the event data received from the floor
 	 */
@@ -48,12 +49,12 @@ class SchedulerTest {
 	void testFloorEventReceived() {
 		System.out.println("----Scheduler Receive Test----");
 		schedulerThread.start();
-		
-		waitToRegister();
-		
+
+		scheduler.waitUntilCanRegister();
+
 		elevatorThread.start();
 		floorThread.start();
-		
+
 		// wait for threads to end
 		while(floorThread.isAlive() || schedulerThread.isAlive() || elevatorThread.isAlive()) {
 			try {
@@ -61,26 +62,26 @@ class SchedulerTest {
 			} catch(InterruptedException e) {
 				fail("Thread interrupted!");
 			}
-		}	
+		}
 		FloorRequest getEvent = scheduler.getLastFloorEvent();
 		FloorRequest floorEvent = floor.getLastParsed();
-		
+
 		assertEquals(getEvent, floorEvent);
 	}
-	
+
 	/**
-	 * Test the event data sent to the elevator
+	 * Test the event data sent to one elevator
 	 */
 	@Test
 	void testSendEvent() {
 		System.out.println("----Scheduler Send Test----");
 		schedulerThread.start();
-		
-		waitToRegister();
-		
+
+		scheduler.waitUntilCanRegister();
+
 		floorThread.start();
 		elevatorThread.start();
-		
+
 		 // wait for threads to end
 		while(floorThread.isAlive() || schedulerThread.isAlive() || elevatorThread.isAlive()) {
 			try {
@@ -89,15 +90,15 @@ class SchedulerTest {
 				fail("Thread interrupted!");
 			}
 		}
-		 
+
 		//Expected last event
 		FloorRequest testEvent = FloorRequest.parseFromString("15:06:10 2 UP 5");
 		FloorRequest getEvent = elevator.getLastEvent();
-			
+
 		//Test the entire scheduler event queue
 		assertEquals(getEvent, testEvent);
 	}
-	
+
 	/**
 	 * Test scheduling algorithm for multiple elevators
 	 */
@@ -105,19 +106,19 @@ class SchedulerTest {
 	void testMultipleElevators() {
 		System.out.println("----Multiple Elevator Scheduling Test----");
 		floor.setFilePath("res/multiple_elevator_test.txt");
-		
+
 		//Create a second elevator
 		Elevator elevator2 = new Elevator();
 		Thread elevator2Thread = new Thread(elevator2, "Elevator 2");
-		
+
 		schedulerThread.start();
-		
-		waitToRegister();
-		
+
+		scheduler.waitUntilCanRegister();
+
 		elevatorThread.start();
 		elevator2Thread.start();
 		floorThread.start();
-		
+
 		// wait for threads to end
 		while(floorThread.isAlive() || schedulerThread.isAlive() || elevatorThread.isAlive() || elevator2Thread.isAlive()) {
 			try {
@@ -126,22 +127,10 @@ class SchedulerTest {
 				fail("Thread interrupted!");
 			}
 		}
-		
+
 		assertTrue((elevator.getFloor() == 7 && elevator2.getFloor() == 2) || (elevator.getFloor() == 2 && elevator2.getFloor() == 7));
-	}
-	
-	
-	private void waitToRegister() {
-		Object canReceiveLock = new Object();
-		scheduler.notifyOnMessagesReceivable(canReceiveLock);
-		while (!scheduler.canReceiveMessages()) {
-			try {
-				synchronized(canReceiveLock) {
-					canReceiveLock.wait();
-				}
-			} catch (InterruptedException e) {
-				fail("Thread interrupted!");
-			}
-		}
+
+		assertEquals(elevator.getState(), ElevatorState.STOPPED); //Make sure the elevator is stopped and the doors are closed
+		assertEquals(elevator2.getState(), ElevatorState.STOPPED); //Make sure the elevator is stopped and the doors are closed
 	}
 }
