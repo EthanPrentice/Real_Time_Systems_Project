@@ -34,8 +34,6 @@ class ElevatorTest {
 		elevator = new Elevator();
 		floor = new Floor();
 		
-		
-		
 		floorThread = new Thread(floor);
 		elevatorThread = new Thread(elevator);
 		schedulerThread = new Thread(scheduler);
