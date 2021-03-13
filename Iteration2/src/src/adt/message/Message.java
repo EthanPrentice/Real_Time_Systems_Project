@@ -70,6 +70,21 @@ public abstract class Message {
 			switch (msgHeader) {
 			case 0x0001:
 				return FloorRequest.parse(bytes, srcPort);
+			case 0x0002:
+				return ElevStatusNotify.parse(bytes, srcPort);
+			case 0x0003:
+				return RegisterElevatorRequest.parse(bytes, srcPort);
+			case 0x0004:
+				return StopRequest.parse(bytes, srcPort);
+			case 0x0005:
+				return StopResponse.parse(bytes, srcPort);
+			case 0x0006:
+				return NoMoreEventsNotify.parse(bytes, srcPort);
+			case 0x0007:
+				return RegisterFloorRequest.parse(bytes, srcPort);
+				
+			case 0x0F0F:
+				return MessageAck.parse(bytes, srcPort);
 				
 			default: // Invalid header
 				throw new IllegalArgumentException(String.format("Illegal message header. (0x%04X)", msgHeader));

@@ -1,14 +1,17 @@
 package src;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 
 import src.adt.*;
 import src.adt.message.FloorRequest;
+import src.adt.message.StopRequest;
 import util.Log;
 
 /**
- * Recieves events from Floor and saves in Queue. Reads events from Queue and sends to elevator. Receives Event from Elevator and sends to Floor
+ * Receives events from Floor and saves in Queue. Reads events from Queue and sends to elevator. Receives Event from Elevator and sends to Floor
  * @author Baillie Noell 101066676 Group 6
  * @edited Ethan Prentice (101070194)
  */
@@ -16,14 +19,21 @@ public class Scheduler implements Runnable {
 	
 	public final static int RECEIVE_PORT = 23;
 	
-	private Floor floor;
+	private SchedulerMessageHandler msgHandler;
 	
-	// all elevators
-	private ArrayList<Elevator> elevators;
+	private int floorPort = 0;
+	private boolean floorHasMoreEvents = true;
 	
-	private ArrayList<Elevator> upElevators = new ArrayList<>();
-	private ArrayList<Elevator> downElevators = new ArrayList<>();
-	private ArrayList<Elevator> stoppedElevators = new ArrayList<>();
+	// all elevators IDs -> ports
+	private HashMap<Character, Integer> elevators = new HashMap<>();
+	
+	// sets of elevator IDs going in directions
+	private HashSet<Character> upElevators = new HashSet<>();
+	private HashSet<Character> downElevators = new HashSet<>();
+	private HashSet<Character> stoppedElevators = new HashSet<>();
+	
+	// elevator id -> last reported status
+	private HashMap<Character, ElevatorStatus> elevatorStatuses = new HashMap<>();
 	
 	
 	// List of events received from the floor and not yet sent to the elevators
@@ -42,10 +52,10 @@ public class Scheduler implements Runnable {
 	 * @param floor
 	 * @param elevator
 	 */
-	public Scheduler(Floor floor, ArrayList<Elevator> elevators) {
-		this.floor = floor;
-		this.elevators = elevators;
-		this.stoppedElevators.addAll(elevators);
+	public Scheduler() {		
+		msgHandler = new SchedulerMessageHandler(this);
+		Thread t = new Thread(msgHandler, "Scheduler MsgHandler");
+		t.start();
 	}
 	
 	
@@ -58,15 +68,11 @@ public class Scheduler implements Runnable {
 				try {
 					wait();
 					
-					if (stopRequested) {
-						stopElevators();
-						return;
-					}
-					
 					// if no more events in local queue or coming from the floor, stop elevator thread when possible and stop scheduler thread
 					// this should exit the application once elevator threads have stopped
-					if (eventList.isEmpty() && !floor.hasMoreEvents()) {
+					if (eventList.isEmpty() && !floorHasMoreEvents) {
 						stopElevators();
+						msgHandler.requestStop();
 						return;
 					}
 					
@@ -81,55 +87,48 @@ public class Scheduler implements Runnable {
 	/**
 	 * Checks whether event can be sent to elevator in it's current state
 	 */
-	private boolean canSendEventToElevator(Elevator elevator, FloorRequest floorRequest) {
-		return elevator.getState() == ElevatorState.STOPPED
-			|| (elevator.getState() == ElevatorState.MOVING_UP && elevator.getFloor() <= floorRequest.getSourceFloor() && floorRequest.getDirection() == ButtonDirection.UP)
-			|| (elevator.getState() == ElevatorState.MOVING_DOWN && elevator.getFloor() >= floorRequest.getSourceFloor() && floorRequest.getDirection() == ButtonDirection.DOWN);
-	}
-	
-	
-	/**
-	 * Returns the next event in the event list that can be sent to the elevator
-	 * @param elevator
-	 * @return the next event that is schedulable to elevator, or null if none exists
-	 */
-	private FloorRequest getNextEventForElevator(Elevator elevator) {
-		Iterator<FloorRequest> iter = eventList.iterator();
-		while (iter.hasNext()) {
-		   FloorRequest e = iter.next();
-		   
-		   // If elevator is stopped, or the event source floor is in the direction the elevator is currently moving, send the event to the elevator
-		   if (canSendEventToElevator(elevator, e)) {
-			   iter.remove();
-			   return e;
-		   }
+	private boolean canSendEventToElevator(Character elevatorId, FloorRequest floorRequest) {
+		ElevatorStatus status = elevatorStatuses.get(elevatorId);
+		if (status == null) {
+			return false;
 		}
 		
-		return null;
+		return status.getState() == ElevatorState.STOPPED
+			|| (status.getState() == ElevatorState.MOVING_UP && status.getFloor() <= floorRequest.getSourceFloor() && floorRequest.getDirection() == ButtonDirection.UP)
+			|| (status.getState() == ElevatorState.MOVING_DOWN && status.getFloor() >= floorRequest.getSourceFloor() && floorRequest.getDirection() == ButtonDirection.DOWN);
 	}
 	
 	
-	private Elevator getClosestElevatorFrom(FloorRequest floorRequest, ArrayList<Elevator> elevators) {
-		Elevator closestElevator = null;
+	private Character getClosestElevatorFrom(FloorRequest floorRequest, HashSet<Character> elevators) {
+		Character closestElevator = null;
+		ElevatorStatus closestStatus = null;
 		
-		for (Elevator elevator : elevators) {
-			if (canSendEventToElevator(elevator, floorRequest)) {
+		for (Character elevatorId : elevators) {
+			if (canSendEventToElevator(elevatorId, floorRequest)) {
+				ElevatorStatus currStatus = elevatorStatuses.get(elevatorId);
+				if (currStatus == null) {
+					continue;
+				}
+				
 				if (floorRequest.getDirection() == ButtonDirection.UP) {
-					if (closestElevator == null || closestElevator.getFloor() > elevator.getFloor()) {
-						closestElevator = elevator;
+					if (closestElevator == null || closestStatus.getFloor() > currStatus.getFloor()) {
+						closestElevator = elevatorId;
+						closestStatus = elevatorStatuses.get(elevatorId);
 						continue;
 					}
 				}
 				else {
-					if (closestElevator == null || closestElevator.getFloor() < elevator.getFloor()) {
-						closestElevator = elevator;
+					if (closestElevator == null || closestStatus.getFloor() < currStatus.getFloor()) {
+						closestElevator = elevatorId;
+						closestStatus = elevatorStatuses.get(elevatorId);
 						continue;
 					}
 				}
 
-				if (closestElevator.getFloor() == elevator.getFloor()) {
-					if (elevator.getMaxOccupancy(floorRequest) < closestElevator.getMaxOccupancy(floorRequest)) {
-						closestElevator = elevator;
+				if (closestStatus.getFloor() == currStatus.getFloor()) {
+					if (currStatus.getMaxOccupancy(floorRequest) < closestStatus.getMaxOccupancy(floorRequest)) {
+						closestElevator = elevatorId;
+						closestStatus = elevatorStatuses.get(elevatorId);
 					}
 				}
 			}
@@ -138,29 +137,38 @@ public class Scheduler implements Runnable {
 		return closestElevator;
 	}
 	
-	private Elevator getClosestElevator(FloorRequest floorRequest) {
-		Elevator closestElevator = null;
+	private Character getClosestElevator(FloorRequest floorRequest) {
+		Character closestElevator = null;
 		
 		if (floorRequest.getDirection() == ButtonDirection.UP) {
-			Elevator closestUp = getClosestElevatorFrom(floorRequest, upElevators);
+			Character closestUp = getClosestElevatorFrom(floorRequest, upElevators);
+			ElevatorStatus upStatus = null;
+			if (closestUp != null) {
+				upStatus = elevatorStatuses.get(closestUp);
+			}
+			 
 			
 			if (upElevators.size() >= Math.ceil(elevators.size() / 2f)) {
 				// cannot take anymore stopped elevators to up, or else we would have over half allocated to up
 				return closestUp;
 			}
 			
-			Elevator closestStopped = getClosestElevatorFrom(floorRequest, stoppedElevators);
+			Character closestStopped = getClosestElevatorFrom(floorRequest, stoppedElevators);
+			ElevatorStatus stoppedStatus = null;
+			if (closestStopped != null) {
+				 stoppedStatus = elevatorStatuses.get(closestStopped);
+			}
 			
 			if (closestUp == null && closestStopped == null) {
 				return null;
 			}
-			else if (closestUp == null || closestUp.getFloor() > closestStopped.getFloor()) {
+			else if (closestUp == null || (closestStopped != null && upStatus.getFloor() > stoppedStatus.getFloor())) {
 				return closestStopped;
 			}
-			else if (closestStopped == null || closestUp.getFloor() < closestStopped.getFloor()) {
+			else if (closestStopped == null || upStatus.getFloor() < stoppedStatus.getFloor()) {
 				return closestUp;
 			}
-			else if (closestUp.getMaxOccupancy(floorRequest) <= closestStopped.getMaxOccupancy(floorRequest)) {
+			else if (upStatus.getMaxOccupancy(floorRequest) <= stoppedStatus.getMaxOccupancy(floorRequest)) {
 				return closestUp;
 			}
 			else {
@@ -168,25 +176,32 @@ public class Scheduler implements Runnable {
 			}
 		}
 		else if (floorRequest.getDirection() == ButtonDirection.DOWN) {
-			Elevator closestDown = getClosestElevatorFrom(floorRequest, downElevators);
+			Character closestDown = getClosestElevatorFrom(floorRequest, downElevators);
+			ElevatorStatus downStatus = null;
+			if (closestDown != null) {
+				downStatus = elevatorStatuses.get(closestDown);
+			}
 			
 			if (downElevators.size() >= Math.ceil(elevators.size() / 2f)) {
 				// cannot take anymore stopped elevators to up, or else we would have over half allocated to up
-				return closestDown;
 			}
 			
-			Elevator closestStopped = getClosestElevatorFrom(floorRequest, stoppedElevators);
+			Character closestStopped = getClosestElevatorFrom(floorRequest, stoppedElevators);
+			ElevatorStatus stoppedStatus = null;
+			if (closestStopped != null) {
+				 stoppedStatus = elevatorStatuses.get(closestStopped);
+			}
 			
 			if (closestDown == null && closestStopped == null) {
 				return null;
 			}
-			else if (closestDown == null || closestDown.getFloor() < closestStopped.getFloor()) {
+			else if (closestDown == null || (closestStopped != null && downStatus.getFloor() < stoppedStatus.getFloor())) {
 				return closestStopped;
 			}
-			else if (closestStopped == null || closestDown.getFloor() > closestStopped.getFloor()) {
+			else if (closestStopped == null || downStatus.getFloor() > stoppedStatus.getFloor()) {
 				return closestDown;
 			}
-			else if (closestDown.getMaxOccupancy(floorRequest) <= closestStopped.getMaxOccupancy(floorRequest)) {
+			else if (downStatus.getMaxOccupancy(floorRequest) <= stoppedStatus.getMaxOccupancy(floorRequest)) {
 				return closestDown;
 			}
 			else {
@@ -210,25 +225,27 @@ public class Scheduler implements Runnable {
 		
 		Iterator<FloorRequest> iter = eventList.iterator();
 		while (iter.hasNext()) {
-			FloorRequest e = iter.next();
-			Elevator elevator = getClosestElevator(e);
+			FloorRequest req = iter.next();
+			Character elevatorId = getClosestElevator(req);
 			
-			if (elevator == null) {
+			if (elevatorId == null) {
 				continue;
 			}
 			
-			elevator.pushEvent(e);
+			Log.log("Sent " + req.toString() + " to Elevator with id=" + (int) elevatorId, Log.Level.INFO);
+			msgHandler.send(req, elevators.get(elevatorId));
+			
 			iter.remove();
 			sentAnEvent = true;
 			
-			stoppedElevators.remove(elevator);
+			stoppedElevators.remove(elevatorId);
 			
-			if (elevator.getState() == ElevatorState.STOPPED) {
-				if (e.getDirection() == ButtonDirection.UP) {
-					upElevators.add(elevator);
+			if (elevatorStatuses.get(elevatorId).getState() == ElevatorState.STOPPED) {
+				if (req.getDirection() == ButtonDirection.UP) {
+					upElevators.add(elevatorId);
 				}
 				else {
-					downElevators.add(elevator);
+					downElevators.add(elevatorId);
 				}
 			}
 		}
@@ -237,12 +254,9 @@ public class Scheduler implements Runnable {
 	}
 	
 	
-	/**
-	 * Requests that all elevators stop when they have finished their assigned jobs
-	 */
 	private void stopElevators() {
-		for (Elevator elevator : elevators) {
-			elevator.requestStop();
+		for (int port : elevators.values()) {
+			msgHandler.send(new StopRequest(), port);
 		}
 	}
 	
@@ -268,7 +282,6 @@ public class Scheduler implements Runnable {
 	 */
 	public void sendEventToFloor(Elevator e, int newFloor) {
 		Log.log("Scheduler: Sent floor changed event to Floor. Elevator now on floor: " + newFloor);
-		floor.onElevatorFloorChanged(e, newFloor);
 	}
 	
 	/**
@@ -287,38 +300,45 @@ public class Scheduler implements Runnable {
 		return this.lastFloorEvent;
 	}
 	
+	public int getFloorPort() {
+		return floorPort;
+	}
 	
-	/**
-	 * Called by the elevator to notify there was a floor change
-	 * @param e
-	 * @param newFloor
-	 */
-	public synchronized void notifyElevatorFloorChange(Elevator e, int newFloor) {
-		Log.log("Scheduler: Recieved floor changed event from Elevator. Elevator now on floor: " + newFloor);
-		sendEventToFloor(e, newFloor);
+	public void setFloorHasMoreEvents(boolean newVal) {
+		floorHasMoreEvents = newVal;
 	}
 	
 	
-	/**
-	 * When the elevator stops, notify the scheduler it can send another event
-	 * @param e
-	 */
-	public synchronized void notifyElevatorStopped(Elevator e) {
-		upElevators.remove(e);
-		downElevators.remove(e);
-		stoppedElevators.add(e);
-		
+	public synchronized void registerElevator(char elevatorId, ElevatorStatus status, int port) {
+		elevators.put(elevatorId, port);
+		stoppedElevators.add(elevatorId);
+		elevatorStatuses.put(elevatorId, status);
+		Log.log("Elevator with ID=" + (int) elevatorId + " has been registered on port=" + port, Log.Level.INFO);
 		notifyAll();
 	}
 	
 	
-	/**
-	 * Stops the runnable from looping, and exits run() after the current request has been executed
-	 */
-	public void requestStop() {
-		stopRequested = true;
+	public synchronized void registerFloor(int port, boolean hasMoreEvents) {
+		floorPort = port;
+		floorHasMoreEvents = hasMoreEvents;
+		Log.log("Floor has been registered on port=" + port, Log.Level.INFO);
 		notifyAll();
 	}
+	
+	
+	public synchronized void updateElevatorStatus(char elevatorId, ElevatorStatus status) {
+		elevatorStatuses.put(elevatorId, status);
+		Log.log("Elevator with ID=" + (int) elevatorId + " has updated status=" + status.toString(), Log.Level.VERBOSE);
+		if (status.getState() == ElevatorState.STOPPED) {
+			upElevators.remove(elevatorId);
+			downElevators.remove(elevatorId);
+			stoppedElevators.add(elevatorId);
+			
+			notifyAll();
+		}
+	}
+	
+	
 	
 	
 	/**
@@ -328,32 +348,10 @@ public class Scheduler implements Runnable {
 	public static void main(String[] args) {
 		// set to INFO for demo.  Use verbose / debug for testing
 		Log.setLevel(Log.Level.INFO);
+		Thread.currentThread().setName("Scheduler");
 		
-		Floor floor = new Floor();
-		
-		ArrayList<Elevator> elevators = new ArrayList<>();
-		elevators.add(new Elevator("Elevator 1"));
-		elevators.add(new Elevator("Elevator 2"));
-		
-		Scheduler scheduler = new Scheduler(floor, elevators);
-		
-		floor.setScheduler(scheduler);
-		
-		Thread floorThread = new Thread(floor, "Floor");
-		Thread schedulerThread = new Thread(scheduler, "Scheduler");
-		
-		ArrayList<Thread> elevatorThreads = new ArrayList<>();
-		for (Elevator elevator : elevators) {
-			elevator.setScheduler(scheduler);
-			
-			Thread elevatorThread = new Thread(elevator, elevator.getName());
-			elevatorThreads.add(elevatorThread);
-			elevatorThread.start();
-		}
-		
-		schedulerThread.start();
-		floorThread.start();
-		
+		Scheduler scheduler = new Scheduler();
+		scheduler.run();
 	}
 	
 

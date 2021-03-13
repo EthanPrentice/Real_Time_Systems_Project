@@ -1,6 +1,7 @@
 package src;
 
 import src.adt.*;
+import src.adt.message.ElevStatusNotify;
 import src.adt.message.FloorRequest;
 import util.Config;
 import util.Log;
@@ -19,12 +20,9 @@ import java.util.PriorityQueue;
 
 public class Elevator implements Runnable {
 	
-	private static char elevatorCount = 0;
-	
+	ElevatorMessageHandler msgHandler;
 	
 	private char elevatorId;
-	
-	private Scheduler scheduler;
 	
 	// Elevator name to differentiate elevators in the logs
 	private String name;
@@ -58,16 +56,23 @@ public class Elevator implements Runnable {
 	private FloorRequest lastEvent;
 	
 	
-	public Elevator(String name) {
-		this.name = name;
-		this.elevatorId = elevatorCount++;
+	public Elevator() {		
+		msgHandler = new ElevatorMessageHandler(this);
+		elevatorId = (char) msgHandler.getPort();
+		name = "Elevator " + (int) elevatorId;
+		
+		Thread.currentThread().setName(name);
+		
+		Thread t = new Thread(msgHandler, name + " MsgHandler");
+		t.start();
 	}
 	
 
 	/**
 	 * Runs the thread. Gets event from the Scheduler and then sends event back to the Scheduler
 	 */
-	public synchronized void run() {
+	@Override
+	public void run() {		
 		while(!stopRequested || !floorQueue.isEmpty()) {         // while elevator is running, or has more events in it's queue
 
 			while (floorQueue.isEmpty()) {
@@ -77,6 +82,7 @@ public class Elevator implements Runnable {
 						
 						// if elevator has no events and has been signaled to exit, exit
 						if (stopRequested && floorQueue.isEmpty()) {
+							msgHandler.requestStop();
 							return;
 						}
 					}
@@ -104,6 +110,8 @@ public class Elevator implements Runnable {
 				changeState(ElevatorState.DOORS_OPEN);
 			}
 		}
+		
+		msgHandler.requestStop();
 	}
 
 	/**
@@ -160,7 +168,6 @@ public class Elevator implements Runnable {
 		else {
 			return getMaxOccupancy(e.getDestFloor(), e.getSourceFloor());
 		}
-		
 	}
 	
 
@@ -194,7 +201,8 @@ public class Elevator implements Runnable {
 
 			// TODO: send message to notify elevator change
 			// ElevStatusRequest
-			scheduler.notifyElevatorFloorChange(this, currFloor);
+			ElevStatusNotify m = new ElevStatusNotify(elevatorId, getStatus());
+			msgHandler.send(m);
 
 			try {
 				// TODO: change to real time between floors
@@ -239,18 +247,11 @@ public class Elevator implements Runnable {
 			for (int i = 0; i < floorOccupancy.length; ++i) {
 				floorOccupancy[i] = 0;
 			}
-			scheduler.notifyElevatorStopped(this);
+			
+			ElevStatusNotify m = new ElevStatusNotify(elevatorId, getStatus());
+			msgHandler.send(m);
 			break;
 		}
-	}
-
-
-	/**
-	 * Setter method for scheduler
-	 * @param s
-	 */
-	public void setScheduler(Scheduler s) {
-		scheduler = s;
 	}
 
 	/**
@@ -276,6 +277,10 @@ public class Elevator implements Runnable {
 	public ElevatorState getState() {
 		return currState;
 	}
+	
+	public ElevatorStatus getStatus() {
+		return new ElevatorStatus(currFloor, currState, floorOccupancy);
+	}
 
 	/**
 	 * @return the last event received from the scheduler
@@ -294,4 +299,16 @@ public class Elevator implements Runnable {
 	public char getElevatorId() {
 		return elevatorId;
 	}
+	
+	
+	static public void main(String[] args) {
+		// set to INFO for demo.  Use verbose / debug for testing
+		Log.setLevel(Log.Level.INFO);
+		
+		Elevator e = new Elevator();
+		Thread.currentThread().setName(e.getName());
+		e.run();
+	}
+	
+	
 }

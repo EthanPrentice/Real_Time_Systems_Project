@@ -1,5 +1,8 @@
 package src.adt.message;
 
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.time.LocalTime;
 import java.time.format.DateTimeParseException;
 
@@ -12,6 +15,7 @@ import src.adt.ButtonDirection;
  * @author Ethan Prentice (101070194)
  * 
  * Data class representation of the events read in from the data file
+ * Sent to the Elevator to notify it to handle an event initiated by the Floor
  */
 public class FloorRequest extends Message {
 	private LocalTime reqTime;
@@ -30,6 +34,11 @@ public class FloorRequest extends Message {
 	
 	@Override
 	public String toString() {
+		return "FloorRequest(" + getDataString() + ")";
+	}
+	
+	
+	private String getDataString() {
 		StringJoiner sj = new StringJoiner(" ");
 		
 		sj.add(reqTime.toString());
@@ -62,16 +71,20 @@ public class FloorRequest extends Message {
 	
 	@Override
 	public byte[] toBytes() {
-		byte[] msgBytes = toString().getBytes();
+		byte[] msgBytes = getDataString().getBytes();
 		
-		byte[] bytes = new byte[msgBytes.length + 2];
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		DataOutputStream dos = new DataOutputStream(bos);
+		try {
+			dos.writeByte(0x00);
+			dos.writeByte(0x01);
+			dos.write(msgBytes);
+			
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 		
-		bytes[0] = 0;
-		bytes[1] = 0x01;
-		
-		System.arraycopy(msgBytes, 0, bytes, 2, msgBytes.length);
-		
-		return bytes;
+		return bos.toByteArray();
 	}
 	
 	
@@ -141,9 +154,14 @@ public class FloorRequest extends Message {
 	 * @return A parsed FloorRequest from [bytes].
 	 */
 	public static FloorRequest parse(byte[] bytes, int srcPort) {
-		byte[] msgBytes = new byte[bytes.length-2];
-		System.arraycopy(bytes, 2, msgBytes, 0, msgBytes.length);
-		return FloorRequest.parseFromString(new String(msgBytes));
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		for (int i = 2; i < bytes.length; ++i) {
+			if (bytes[i] == 0) {
+				break;
+			}
+			bos.write(bytes[i]);
+		}
+		return FloorRequest.parseFromString(new String(bos.toByteArray()));
 	}
 	
 }
