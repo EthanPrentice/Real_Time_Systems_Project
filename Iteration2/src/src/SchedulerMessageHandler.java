@@ -90,9 +90,11 @@ public class SchedulerMessageHandler extends MessageHandler implements Runnable 
 		}
 		
 		// All elevators have exited.  This means we can shutdown the Floor as well
-		requestFloorStop();
-		
-		sock.close();
+		if (!sock.isClosed()) {
+			requestFloorStop();
+			sock.close();
+		}
+
 	}
 	
 	public synchronized void requestStop() {
