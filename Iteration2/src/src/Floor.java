@@ -9,6 +9,7 @@ import src.adt.message.NoMoreEventsNotify;
 import java.io.*;
 import java.lang.Runnable;
 
+import util.Config;
 import util.Log;
 
 /**
@@ -87,10 +88,12 @@ public class Floor implements Runnable {
 				try {
 					lastParsed = FloorRequest.parseFromString(line);
 					
-					// sleep to simulate real time events (between 1 and 3 seconds)
-					Long sleepMs = 1000L * (rand.nextInt(3) + 1);
-					sleepMs = 1000L;
-					Thread.sleep(sleepMs); // TODO: change this timing to be timing in file
+					if (!Config.USE_ZERO_FLOOR_TIME) {
+						// sleep to simulate real time events (between 1 and 3 seconds)
+						Long sleepMs = 1000L * (rand.nextInt(3) + 1);
+						sleepMs = 1000L;
+						Thread.sleep(sleepMs); // TODO: change this timing to be timing in file
+					}
 					
 					Log.log("Floor: Sent event to Scheduler. Event: " + lastParsed.toString(), Log.Level.INFO);
 					
