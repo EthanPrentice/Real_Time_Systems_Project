@@ -32,9 +32,7 @@ class ElevatorTest {
 	void setup() {
 		floor = new Floor();
 		elevator = new Elevator();
-		scheduler = new Scheduler(floor, elevator);
-		floor.setScheduler(scheduler);
-		elevator.setScheduler(scheduler);
+		scheduler = new Scheduler();
 		
 		floorThread = new Thread(floor);
 		elevatorThread = new Thread(elevator);

@@ -35,9 +35,7 @@ class SchedulerTest {
 	void setup() {
 		floor = new Floor();
 		elevator = new Elevator();
-		scheduler = new Scheduler(floor, elevator);
-		floor.setScheduler(scheduler);
-		elevator.setScheduler(scheduler);
+		scheduler = new Scheduler();
 		
 		schedulerThread = new Thread(scheduler);
 		floorThread = new Thread(floor);
