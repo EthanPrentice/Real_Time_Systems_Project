@@ -74,16 +74,12 @@ public class ElevatorMessageHandler extends MessageHandler implements Runnable {
 				}
 				// unrecognized message, send MessageAck failure
 				else {
-					if (!sock.isClosed()) {
-						send(new MessageAck(false), received.getSrcPort());
-					}
+					send(new MessageAck(false), received.getSrcPort());
 					continue;
 				}
 				
-				if (!sock.isClosed()) {
-					// message handled correctly, send MessageAck success
-					send(new MessageAck(true), received.getSrcPort());
-				}
+				// message handled correctly, send MessageAck success
+				send(new MessageAck(true), received.getSrcPort());
 				
 			} catch (IOException e) {
 				if (!stopRequested) {

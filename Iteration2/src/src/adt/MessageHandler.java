@@ -56,7 +56,12 @@ public abstract class MessageHandler {
 		
 		try {
 			// send request to the scheduler
-			sock.send(sendPacket);
+			if (!sock.isClosed()) {
+				sock.send(sendPacket);
+			}
+			else {
+				Log.log("Could not send! Socket closed.", Log.Level.DEBUG);
+			}
 		} catch (IOException e) {
 			e.printStackTrace();
 			System.exit(-1);
