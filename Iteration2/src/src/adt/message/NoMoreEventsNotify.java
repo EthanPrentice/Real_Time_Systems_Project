@@ -1,5 +1,16 @@
 package src.adt.message;
 
+/**
+ * Written for SYSC3303 - Group 6 - Iteration 3 @ Carleton University
+ * @author Ethan Prentice (101070194)
+ * 
+ * Sent by the Floor to notify the target that it has run out of events
+ * Usually this would not apply in a real-time system, but since the Floor
+ *   is emulating real events we know that we will not receive any more at a certain point
+ *   
+ * In the case of a true real-time system, this would be useful to signal an emergency shut-down
+ * 
+ */
 public class NoMoreEventsNotify extends Message {
 
 	public NoMoreEventsNotify() {

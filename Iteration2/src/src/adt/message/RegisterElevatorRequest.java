@@ -8,7 +8,14 @@ import java.nio.ByteBuffer;
 import src.adt.ElevatorState;
 import src.adt.ElevatorStatus;
 
-
+/**
+ * Written for SYSC3303 - Group 6 - Iteration 3 @ Carleton University
+ * @author Ethan Prentice (101070194)
+ * 
+ * Used to register the elevator with the target and give it it's initial state
+ * This allows the Scheduler to know which ports the Elevators are running on and where
+ *   they have started
+ */
 public class RegisterElevatorRequest extends Message {
 	
 	private char elevatorId;

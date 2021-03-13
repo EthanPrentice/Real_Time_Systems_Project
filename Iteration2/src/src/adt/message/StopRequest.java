@@ -1,5 +1,14 @@
 package src.adt.message;
 
+/**
+ * Written for SYSC3303 - Group 6 - Iteration 3 @ Carleton University
+ * @author Ethan Prentice (101070194)
+ * 
+ * Used to notify the target it should stop
+ * This allows the system to have a clean exit in the case of emergency stops
+ *   or the Floor emulation running out of events in the file
+ * These are percolated throughout the system to stop each subsystem when it is safe to do so
+ */
 public class StopRequest extends Message {
 	
 	public StopRequest() {

@@ -2,6 +2,7 @@ package src.adt.message;
 
 /**
  * Written for SYSC3303 - Assignment 3 @ Carleton University
+ * Modified for SYSC3303 - Group 6 - Iteration 3
  * @author Ethan Prentice (101070194)
  * 
  * Used to notify the sender that the message was received, and whether or not is was successfully parsed and handled

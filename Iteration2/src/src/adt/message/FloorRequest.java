@@ -25,6 +25,11 @@ public class FloorRequest extends Message {
 	
 	
 	public FloorRequest(LocalTime reqTime, int srcFloor, ButtonDirection btnDirection, int dstFloor) {
+		this(reqTime, srcFloor, btnDirection, dstFloor, 0);
+	}
+	
+	public FloorRequest(LocalTime reqTime, int srcFloor, ButtonDirection btnDirection, int dstFloor, int srcPort) {
+		super(srcPort);
 		this.reqTime = reqTime;
 		this.srcFloor = srcFloor;
 		this.btnDirection = btnDirection;
@@ -161,7 +166,9 @@ public class FloorRequest extends Message {
 			}
 			bos.write(bytes[i]);
 		}
-		return FloorRequest.parseFromString(new String(bos.toByteArray()));
+		FloorRequest req = FloorRequest.parseFromString(new String(bos.toByteArray()));
+		req.setSrcPort(srcPort);
+		return req;
 	}
 	
 }

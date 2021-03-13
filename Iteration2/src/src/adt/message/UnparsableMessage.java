@@ -4,6 +4,7 @@ import java.nio.charset.StandardCharsets;
 
 /**
  * Written for SYSC3303 - Assignment 2 @ Carleton University
+ * Modified for SYSC3303 - Group 6 - Iteration 3
  * @author Ethan Prentice (101070194)
  * 
  * This class should only be used when we need a Message with raw bytes because 

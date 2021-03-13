@@ -2,11 +2,10 @@ package src.adt.message;
 
 /**
  * Written for SYSC3303 - Assignment 2 @ Carleton University
+ * Modified for SYSC3303 - Group 6 - Iteration 3
  * @author Ethan Prentice (101070194)
  * 
  * Abstract class that all requests and responses should extend
- * Note in a real system, there would be two more abstract classes, Request and Response
- *   but since we only have one of each I've left them out to reduce clutter
  */
 public abstract class Message {
 	
