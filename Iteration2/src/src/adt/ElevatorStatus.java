@@ -4,6 +4,12 @@ import java.util.Arrays;
 
 import src.adt.message.FloorRequest;
 
+/**
+ * Written for SYSC3303 - Group 6 - Iteration 3 @ Carleton University
+ * @author Ethan Prentice (101070194)
+ * 
+ * Data class to store the elevator's status, including it's floor, state, and expected occupancy per floor
+ */
 public class ElevatorStatus {
 	
 	private int currFloor;

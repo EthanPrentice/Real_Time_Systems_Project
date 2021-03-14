@@ -20,12 +20,15 @@ import util.Log;
  */
 public class Floor implements Runnable {
 	
+	// Message handling
 	private Thread msgHandlerThread;
 	private FloorMessageHandler msgHandler;
 	
 	boolean hasMoreEvents = true;
 	private FloorRequest lastParsed;
 	private int lastFloor;
+	
+	// path to read events from
 	private String filePath;
 	
 	/** Used to generate the random intervals between events */

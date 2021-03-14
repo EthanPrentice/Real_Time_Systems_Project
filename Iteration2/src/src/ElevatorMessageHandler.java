@@ -117,12 +117,6 @@ public class ElevatorMessageHandler extends MessageHandler {
 			
 			// notify Scheduler the Elevator is stopping
 			send(new StopResponse());
-//			try {
-//				receive();
-//			} catch (IOException e) {
-//				// TODO Auto-generated catch block
-//				e.printStackTrace();
-//			}
 			
 			sock.close();
 		}

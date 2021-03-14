@@ -21,26 +21,30 @@ public class Scheduler implements Runnable {
 	
 	public final static int RECEIVE_PORT = 23;
 	
+	// Message handling
 	private Thread msgHandlerThread;
 	private SchedulerMessageHandler msgHandler;
 	
+	// Used to wait for Scheduler to initialize and be ready to receive registration events
+	// Useful for testing where we run Scheduler as a thread and must wait to run Elevator and Floor threads until
+	//   Scheduler's MessageHandler is initialized
 	private boolean canReceiveMessages = false;
 	private Object canReceiveMessagesLock = new Object();
 	
+	// Store information sent from the Floor
 	private int floorPort = 0;
 	private boolean floorHasMoreEvents = true;
 	
 	// all elevators IDs -> ports
 	private HashMap<Character, Integer> elevators = new HashMap<>();
 	
-	// sets of elevator IDs going in directions
+	// sets of elevator IDs going in directions - used for faster scheduling based off of direction
 	private HashSet<Character> upElevators = new HashSet<>();
 	private HashSet<Character> downElevators = new HashSet<>();
 	private HashSet<Character> stoppedElevators = new HashSet<>();
 	
-	// elevator id -> last reported status
+	// elevator id -> last reported status - used for storing status updates from Elevators to use in scheduling
 	private HashMap<Character, ElevatorStatus> elevatorStatuses = new HashMap<>();
-	
 	
 	// List of events received from the floor and not yet sent to the elevators
 	private ArrayList<FloorRequest> eventList = new ArrayList<FloorRequest>();
@@ -162,6 +166,7 @@ public class Scheduler implements Runnable {
 	/**
 	 * @param floorRequest
 	 * @return the closest elevator that can service [floorRequest] in it's current state, as defined by the canSendEventToElevator method.
+	 *         in the case where two elevators are the same distance, return the one that will result in the least occupancy throughout the trip
 	 */
 	private Character getClosestElevator(FloorRequest floorRequest) {
 		Character closestElevator = null;
@@ -280,6 +285,9 @@ public class Scheduler implements Runnable {
 	}
 	
 	
+	/**
+	 * Ask all elevators to stop when it is safe to do so
+	 */
 	private void stopElevators() {
 		for (int port : elevators.values()) {
 			msgHandler.send(new StopRequest(), port);
@@ -334,7 +342,12 @@ public class Scheduler implements Runnable {
 		floorHasMoreEvents = newVal;
 	}
 	
-	
+	/**
+	 * Registers the elevator with the scheduler, storing it's port and initial status
+	 * @param elevatorId
+	 * @param status
+	 * @param port
+	 */
 	public synchronized void registerElevator(char elevatorId, ElevatorStatus status, int port) {
 		elevators.put(elevatorId, port);
 		stoppedElevators.add(elevatorId);
@@ -343,7 +356,11 @@ public class Scheduler implements Runnable {
 		notifyAll();
 	}
 	
-	
+	/**
+	 * Registers the floor with the scheduler, storing it's port and ensuring it has more events or else we exit
+	 * @param port
+	 * @param hasMoreEvents
+	 */
 	public synchronized void registerFloor(int port, boolean hasMoreEvents) {
 		floorPort = port;
 		floorHasMoreEvents = hasMoreEvents;
@@ -351,7 +368,12 @@ public class Scheduler implements Runnable {
 		notifyAll();
 	}
 	
-	
+	/**
+	 * Updates the cached elevator status of [elevatorId] to [status]
+	 * Notifies the Scheduler of this change if the Elevator is stopped so that events may be sent to it if they could not before
+	 * @param elevatorId
+	 * @param status
+	 */
 	public synchronized void updateElevatorStatus(char elevatorId, ElevatorStatus status) {
 		elevatorStatuses.put(elevatorId, status);
 		Log.log("Elevator with ID=" + (int) elevatorId + " has updated status=" + status.toString(), Log.Level.VERBOSE);
@@ -364,10 +386,16 @@ public class Scheduler implements Runnable {
 		}
 	}
 	
+	/**
+	 * @return whether the MessageHandler has been initialized
+	 */
 	public boolean canReceiveMessages() {
 		return canReceiveMessages;
 	}
 	
+	/**
+	 * Sets whether the MessageHandler has been initialized
+	 */
 	public void setCanReceiveMessages(boolean newVal) {
 		canReceiveMessages = newVal;
 		if (newVal && canReceiveMessagesLock != null) {
@@ -377,7 +405,9 @@ public class Scheduler implements Runnable {
 		}
 	}
 	
-	
+	/**
+	 * Waits until the Scheduler's MessageHandler has been initialized and clients can register
+	 */
 	public void waitUntilCanRegister() {
 		if (canReceiveMessages) {
 			return;

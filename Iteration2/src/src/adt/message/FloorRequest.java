@@ -112,7 +112,7 @@ public class FloorRequest extends Message {
 	 * 			: in order these are time, floor, direction, car button
 	 * 
 	 * @exception IllegalArgumentException if the string cannot be parsed
-	 * @return a FloorEvent with the parsed values of s
+	 * @return a FloorRequest with the parsed values of s
 	 */
 	public static FloorRequest parseFromString(String s) throws IllegalArgumentException {	
 		String[] args = s.split("\\s+");

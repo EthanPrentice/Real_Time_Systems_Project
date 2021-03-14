@@ -5,8 +5,10 @@ import java.text.SimpleDateFormat;
 
 
 /**
- * Used to manage printing to the console, including system time and thread names
+ * Written for SYSC3303 - Group 6 - Iteration 3 @ Carleton University
  * @author Ethan Prentice (101070194)
+ * 
+ * Used to manage printing to the console, including system time and thread names
  */
 public class Log {
 	

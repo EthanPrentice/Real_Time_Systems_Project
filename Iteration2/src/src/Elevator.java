@@ -244,8 +244,7 @@ public class Elevator implements Runnable {
 		while (currFloor != targetFloor) {
 			currFloor += delta;
 
-			// TODO: send message to notify elevator change
-			// ElevStatusRequest
+			// send message to notify elevator change
 			ElevStatusNotify m = new ElevStatusNotify(elevatorId, getStatus());
 			msgHandler.send(m);
 
@@ -272,20 +271,31 @@ public class Elevator implements Runnable {
 	 */
 	private void changeState(ElevatorState newState) {
 		currState = newState;
+		
+		ElevStatusNotify msg;
 
 		switch(newState) {
 		case MOVING_UP:
 		case MOVING_DOWN:
 			moveToFloor(targetFloor);
+			
 			// open doors once the floor has been reached
 			changeState(ElevatorState.DOORS_OPEN);
 			break;
 
 		case DOORS_OPEN:
+			// send message to notify elevator change
+			msg = new ElevStatusNotify(elevatorId, getStatus());
+			msgHandler.send(msg);
+			
 			onDoorsOpen();
 			break;
 
 		case DOORS_CLOSED:
+			// send message to notify elevator change
+			msg = new ElevStatusNotify(elevatorId, getStatus());
+			msgHandler.send(msg);
+			
 			Log.log("Elevator doors have closed", Log.Level.INFO);
 			if (floorQueue.isEmpty()) {
 				changeState(ElevatorState.STOPPED);
@@ -356,7 +366,6 @@ public class Elevator implements Runnable {
 		Log.setLevel(Log.Level.INFO);
 		
 		Elevator e = new Elevator();
-		Thread.currentThread().setName(e.getName());
 		e.run();
 	}
 	
