@@ -128,9 +128,8 @@ class SchedulerTest {
 			}
 		}
 
-		assertTrue((elevator.getFloor() == 7 && elevator2.getFloor() == 2) || (elevator.getFloor() == 2 && elevator2.getFloor() == 7));
-
-		assertEquals(elevator.getState(), ElevatorState.STOPPED); //Make sure the elevator is stopped and the doors are closed
-		assertEquals(elevator2.getState(), ElevatorState.STOPPED); //Make sure the elevator is stopped and the doors are closed
+		assertTrue((elevator.getStatus().getFloor() == 7 && elevator2.getStatus().getFloor() == 2) || (elevator.getStatus().getFloor() == 2 && elevator2.getStatus().getFloor() == 7));
+		assertEquals(elevator.getStatus().getState(), ElevatorState.STOPPED); //Make sure the elevator is stopped and the doors are closed
+		assertEquals(elevator2.getStatus().getState(), ElevatorState.STOPPED); //Make sure the elevator is stopped and the doors are closed
 	}
 }

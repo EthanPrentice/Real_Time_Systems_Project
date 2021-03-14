@@ -1,7 +1,5 @@
 package src;
 
-import static org.junit.jupiter.api.Assertions.fail;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -419,7 +417,7 @@ public class Scheduler implements Runnable {
 					canReceiveMessagesLock.wait();
 				}
 			} catch (InterruptedException e) {
-				fail("Thread interrupted!");
+				e.printStackTrace();
 			}
 		}
 	}

@@ -323,20 +323,6 @@ public class Elevator implements Runnable {
 			floorQueueLock.notifyAll();
 		}
 	}
-
-	/**
-	 * @return the floor the elevator is currently on, with 0 being ground
-	 */
-	public int getFloor() {
-		return currFloor;
-	}
-
-	/**
-	 * @return the elevator's current ElevatorState
-	 */
-	public ElevatorState getState() {
-		return currState;
-	}
 	
 	public ElevatorStatus getStatus() {
 		return new ElevatorStatus(currFloor, currState, floorOccupancy);
@@ -347,17 +333,6 @@ public class Elevator implements Runnable {
 	 */
 	public FloorRequest getLastEvent() {
 		return this.lastEvent;
-	}
-	
-	/**
-	 * @return the name of the elevator
-	 */
-	public String getName() {
-		return name;
-	}
-	
-	public char getElevatorId() {
-		return elevatorId;
 	}
 	
 	
