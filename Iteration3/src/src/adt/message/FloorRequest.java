@@ -1,24 +1,35 @@
-package src.adt;
+package src.adt.message;
 
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.time.LocalTime;
 import java.time.format.DateTimeParseException;
 
 import java.util.*;
 
+import src.adt.ButtonDirection;
+
 /**
- * Written for SYSC3303 - Group 6 - Iteration 1 @ Carleton University
+ * Written for SYSC3303 - Group 6 - Iteration 3 @ Carleton University
  * @author Ethan Prentice (101070194)
  * 
  * Data class representation of the events read in from the data file
+ * Sent to the Elevator to notify it to handle an event initiated by the Floor
  */
-public class Event {
+public class FloorRequest extends Message {
 	private LocalTime reqTime;
 	private int srcFloor;
 	private ButtonDirection btnDirection;
 	private int dstFloor;
 	
 	
-	public Event(LocalTime reqTime, int srcFloor, ButtonDirection btnDirection, int dstFloor) {
+	public FloorRequest(LocalTime reqTime, int srcFloor, ButtonDirection btnDirection, int dstFloor) {
+		this(reqTime, srcFloor, btnDirection, dstFloor, 0);
+	}
+	
+	public FloorRequest(LocalTime reqTime, int srcFloor, ButtonDirection btnDirection, int dstFloor, int srcPort) {
+		super(srcPort);
 		this.reqTime = reqTime;
 		this.srcFloor = srcFloor;
 		this.btnDirection = btnDirection;
@@ -28,6 +39,11 @@ public class Event {
 	
 	@Override
 	public String toString() {
+		return "FloorRequest(" + getDataString() + ")";
+	}
+	
+	
+	private String getDataString() {
 		StringJoiner sj = new StringJoiner(" ");
 		
 		sj.add(reqTime.toString());
@@ -59,9 +75,28 @@ public class Event {
 	
 	
 	@Override
+	public byte[] toBytes() {
+		byte[] msgBytes = getDataString().getBytes();
+		
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		DataOutputStream dos = new DataOutputStream(bos);
+		try {
+			dos.writeByte(0x00);
+			dos.writeByte(0x01);
+			dos.write(msgBytes);
+			
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		return bos.toByteArray();
+	}
+	
+	
+	@Override
 	public boolean equals(Object o) {
-		if (o instanceof Event) {
-			Event e = (Event) o;
+		if (o instanceof FloorRequest) {
+			FloorRequest e = (FloorRequest) o;
 			return reqTime.equals(e.reqTime)
 				&& srcFloor == e.srcFloor
 				&& btnDirection.equals(e.btnDirection)
@@ -77,9 +112,9 @@ public class Event {
 	 * 			: in order these are time, floor, direction, car button
 	 * 
 	 * @exception IllegalArgumentException if the string cannot be parsed
-	 * @return a FloorEvent with the parsed values of s
+	 * @return a FloorRequest with the parsed values of s
 	 */
-	public static Event parseFromString(String s) throws IllegalArgumentException {	
+	public static FloorRequest parseFromString(String s) throws IllegalArgumentException {	
 		String[] args = s.split("\\s+");
 		if (args.length != 4) {
 			throw new IllegalArgumentException("Input string has inproper formatting.  Must include 4 variables. (" + s + ")");
@@ -113,6 +148,27 @@ public class Event {
 			throw new IllegalArgumentException("Car button could not be parsed from input string. (" + s + ")");
 		}
 		
-		return new Event(reqTime, floorNum, btnDirection, carBtn);
+		return new FloorRequest(reqTime, floorNum, btnDirection, carBtn);
 	}
+	
+	
+	/**
+	 * @param bytes The byte array to read in the FloorRequest from
+	 * @throws IllegalArgumentException if the request cannot be parsed from the bytes
+	 * 
+	 * @return A parsed FloorRequest from [bytes].
+	 */
+	public static FloorRequest parse(byte[] bytes, int srcPort) {
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		for (int i = 2; i < bytes.length; ++i) {
+			if (bytes[i] == 0) {
+				break;
+			}
+			bos.write(bytes[i]);
+		}
+		FloorRequest req = FloorRequest.parseFromString(new String(bos.toByteArray()));
+		req.setSrcPort(srcPort);
+		return req;
+	}
+	
 }

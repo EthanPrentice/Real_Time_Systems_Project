@@ -12,10 +12,11 @@ import src.Elevator;
 import src.Floor;
 import src.Scheduler;
 import src.adt.*;
+import util.Config;
 
 /**
  * Tests all possible paths for the Elevator state machine using varying test data
- * Written for SYSC3303 - Group 6 - Iteration 2 @ Carleton University
+ * Written for SYSC3303 - Group 6 - Iteration 3 @ Carleton University
  * @author Nicholas Milani 101075096
  *
  */
@@ -30,15 +31,14 @@ class ElevatorTest {
 	
 	@BeforeEach
 	void setup() {
-		floor = new Floor();
+		Config.USE_ZERO_FLOOR_TIME = true;
+		scheduler = new Scheduler();
 		elevator = new Elevator();
-		scheduler = new Scheduler(floor, elevator);
-		floor.setScheduler(scheduler);
-		elevator.setScheduler(scheduler);
+		floor = new Floor();
 		
-		floorThread = new Thread(floor);
-		elevatorThread = new Thread(elevator);
-		schedulerThread = new Thread(scheduler);
+		floorThread = new Thread(floor, "Floor");
+		elevatorThread = new Thread(elevator, "Elevator");
+		schedulerThread = new Thread(scheduler, "Scheduler");
 		
 	}
 	
@@ -50,7 +50,13 @@ class ElevatorTest {
 		System.out.println("----Same Floor Request----");
 		floor.setFilePath("res/same_floor_test.txt");
 
+		assertEquals(elevator.getStatus().getFloor(), 0); //Make sure the elevator starts on the ground floor
+		assertEquals(elevator.getStatus().getState(), ElevatorState.STOPPED); //Make sure the elevator is stopped and the doors are closed
+		
 		schedulerThread.start();
+		
+		scheduler.waitUntilCanRegister();
+		
 		floorThread.start();
 		elevatorThread.start();
 		
@@ -63,8 +69,8 @@ class ElevatorTest {
 			}
 		}
 		
-		assertEquals(floor.getLastFloor(), 1); //The expected last floor is the floor it started on i.e. floor 1
-		assertEquals(elevator.getState(), ElevatorState.STOPPED); //Make sure the elevator is stopped and the doors are closed
+		assertEquals(elevator.getStatus().getFloor(), 1); //The expected last floor is the floor it started on i.e. floor 1
+		assertEquals(elevator.getStatus().getState(), ElevatorState.STOPPED); //Make sure the elevator is stopped and the doors are closed
 	}
 	
 	/**
@@ -75,7 +81,13 @@ class ElevatorTest {
 		System.out.println("----Lower Floor Request----");
 		floor.setFilePath("res/lower_floor_test.txt");
 		
+		assertEquals(elevator.getStatus().getFloor(), 0); //Make sure the elevator starts on the ground floor
+		assertEquals(elevator.getStatus().getState(), ElevatorState.STOPPED); //Make sure the elevator is stopped and the doors are closed
+
 		schedulerThread.start();
+		
+		scheduler.waitUntilCanRegister();
+		
 		floorThread.start();
 		elevatorThread.start();
 		
@@ -88,8 +100,8 @@ class ElevatorTest {
 			}
 		}
 		
-		assertEquals(floor.getLastFloor(), 2); //The expected last floor for the elevator to be stopped at
-		assertEquals(elevator.getState(), ElevatorState.STOPPED); //Make sure the elevator is stopped and the doors are closed
+		assertEquals(elevator.getStatus().getFloor(), 2); //The expected last floor for the elevator to be stopped at
+		assertEquals(elevator.getStatus().getState(), ElevatorState.STOPPED); //Make sure the elevator is stopped and the doors are closed
 	}
 	
 	/**
@@ -99,12 +111,18 @@ class ElevatorTest {
 	void testUpperFloorRequest() {
 		System.out.println("----Upper Floor Request----");
 		floor.setFilePath("res/upper_floor_test.txt");
+
+		assertEquals(elevator.getStatus().getFloor(), 0); //Make sure the elevator starts on the ground floor
+		assertEquals(elevator.getStatus().getState(), ElevatorState.STOPPED); //Make sure the elevator is stopped and the doors are closed
 		
 		schedulerThread.start();
-		floorThread.start();
-		elevatorThread.start();
 		
-		// wait for threads to end
+		scheduler.waitUntilCanRegister();
+		
+		elevatorThread.start();
+		floorThread.start();
+		
+		//wait for threads to end
 		while(floorThread.isAlive() || schedulerThread.isAlive() || elevatorThread.isAlive()) {
 			try {
 				Thread.sleep(100L);
@@ -113,8 +131,10 @@ class ElevatorTest {
 			}
 		}
 		
-		assertEquals(floor.getLastFloor(), 4); //The expected last floor for the elevator to be stopped at
-		assertEquals(elevator.getState(), ElevatorState.STOPPED); //Make sure the elevator is stopped and the doors are closed
+		
+		assertEquals(elevator.getStatus().getFloor(), 4); //The expected last floor for the elevator to be stopped at
+		assertEquals(elevator.getStatus().getState(), ElevatorState.STOPPED); //Make sure the elevator is stopped and the doors are closed
 	}
 
+	
 }

@@ -5,8 +5,10 @@ import java.text.SimpleDateFormat;
 
 
 /**
- * Used to manage printing to the console, including system time and thread names
+ * Written for SYSC3303 - Group 6 - Iteration 3 @ Carleton University
  * @author Ethan Prentice (101070194)
+ * 
+ * Used to manage printing to the console, including system time and thread names
  */
 public class Log {
 	
@@ -24,11 +26,11 @@ public class Log {
 	}
 	
 	
-	public static void log(String message, Level msgLevel) {
-		if (msgLevel.value <= logLevel.value) {
+	public static synchronized void log(String message, Level msgLevel) {
+		if (msgLevel.value >= logLevel.value) {
 	        Timestamp timestamp = new Timestamp(System.currentTimeMillis());
 	        
-	        String format = "[%s][Thread=%s] %s";
+	        String format = "[%s][%s] %s";
 	        System.out.println(String.format(format, sdf.format(timestamp), Thread.currentThread().getName(), message));
 		}
 	}
@@ -36,8 +38,8 @@ public class Log {
 	
 	public enum Level {
 		VERBOSE(0),
-		DEBUG(2),
-		INFO(1);
+		DEBUG(1),
+		INFO(2);
 		
 		public final int value;
 		

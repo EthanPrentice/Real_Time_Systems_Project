@@ -11,12 +11,13 @@ import src.Elevator;
 import src.Floor;
 import src.Scheduler;
 import src.adt.ButtonDirection;
-import src.adt.Event;
+import src.adt.message.FloorRequest;
+import util.Config;
 
 /**
  * Tests the floor's abilities to parse data from a text file, receive elevator data from the scheduler and
  * send event data to the scheduler
- * Written for SYSC3303 - Group 6 - Iteration 2 @ Carleton University
+ * Written for SYSC3303 - Group 6 - Iteration 3 @ Carleton University
  * @author Nicholas Milani 101075096
  *
  */
@@ -31,15 +32,14 @@ class FloorTest {
 	
 	@BeforeEach
 	void setup() {
-		floor = new Floor();
+		Config.USE_ZERO_FLOOR_TIME = true;
+		scheduler = new Scheduler();
 		elevator = new Elevator();
-		scheduler = new Scheduler(floor, elevator);
-		floor.setScheduler(scheduler);
-		elevator.setScheduler(scheduler);
+		floor = new Floor();
 		
-		schedulerThread = new Thread(scheduler);
-		floorThread = new Thread(floor);
-		elevatorThread = new Thread(elevator);
+		schedulerThread = new Thread(scheduler, "Scheduler");
+		floorThread = new Thread(floor, "Floor");
+		elevatorThread = new Thread(elevator, "Elevator");
 		
 	}
 	
@@ -48,7 +48,10 @@ class FloorTest {
 	 */
 	@Test
 	void testFloorParsing() {
-		
+		System.out.println("----Floor Parsing Test----");
+		schedulerThread.start();
+		scheduler.waitUntilCanRegister();
+		elevatorThread.start();
 		floorThread.start();
 		
 		// wait for threads to end
@@ -60,8 +63,8 @@ class FloorTest {
 			}
 		}
 		
-		Event testEvent = new Event(LocalTime.parse("14:06:10.0"), 3, ButtonDirection.DOWN, 1); //The expected last parsed Event object
-		Event getEvent = floor.getLastParsed();
+		FloorRequest testEvent = FloorRequest.parseFromString("00:00:35.0 3 Down 1"); //The expected last parsed Event object
+		FloorRequest getEvent = floor.getLastParsed();
 		
 		assertEquals(getEvent, testEvent);
 	}
@@ -72,10 +75,11 @@ class FloorTest {
 	 */
 	@Test
 	void testFloorReceive() {
-		
+		System.out.println("----Floor Receive Request----");
 		schedulerThread.start();
-		floorThread.start();
+		scheduler.waitUntilCanRegister();
 		elevatorThread.start();
+		floorThread.start();
 		
 		
 		// wait for threads to end
@@ -88,7 +92,7 @@ class FloorTest {
 		}
 		
 
-		assertEquals(floor.getLastFloor(), 1); //The expected last floor 1
+		assertEquals(floor.getLastFloor(), 5); //The expected last floor 5
 		
 	}
 
@@ -98,23 +102,27 @@ class FloorTest {
 	 */
 	 @Test
 	 void testFloorSend() {
+		 System.out.println("----Floor Send Test----");
+		 schedulerThread.start();
+		 scheduler.waitUntilCanRegister();
+		 elevatorThread.start();
 		 floorThread.start();
 				
 		 // wait for threads to end
 		 while(floorThread.isAlive()) {
 			 try {
 				 Thread.sleep(100L);
-				 } catch(InterruptedException e) {
-					 fail("Thread interrupted!");
-				 	}
+			 } catch(InterruptedException e) {
+				 fail("Thread interrupted!");
+			 }
 		 }
 				
-				//Expected last event
-				Event testEvent = new Event(LocalTime.parse("14:06:10.0"), 3, ButtonDirection.DOWN, 1);
+		 //Expected last event
+		 FloorRequest testEvent = FloorRequest.parseFromString("00:00:35.0 3 Down 1");
 				
-				Event getEvent = scheduler.getLastFloorEvent();
+		 FloorRequest getEvent = scheduler.getLastFloorEvent();
 				
-				//Test the entire scheduler event queue
-				assertEquals(getEvent, testEvent);
+		 //Test the entire scheduler event queue
+		 assertEquals(getEvent, testEvent);
 	}
 }
