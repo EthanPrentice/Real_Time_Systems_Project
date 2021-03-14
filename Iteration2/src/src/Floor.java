@@ -158,7 +158,7 @@ public class Floor implements Runnable {
 			}
 			
 		} catch (FileNotFoundException e) {
-			System.err.println("Could not read from file.");
+			Log.log("Could not read from file.", Log.Level.INFO);
 			e.printStackTrace();
 			
 		} finally {
