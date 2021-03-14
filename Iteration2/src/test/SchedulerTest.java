@@ -92,7 +92,7 @@ class SchedulerTest {
 		}
 
 		//Expected last event
-		FloorRequest testEvent = FloorRequest.parseFromString("15:06:10 2 UP 5");
+		FloorRequest testEvent = FloorRequest.parseFromString("00:00:33.0 2 UP 5");
 		FloorRequest getEvent = elevator.getLastEvent();
 
 		//Test the entire scheduler event queue

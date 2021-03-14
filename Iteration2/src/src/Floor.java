@@ -8,6 +8,7 @@ import src.adt.message.NoMoreEventsNotify;
 
 import java.io.*;
 import java.lang.Runnable;
+import java.time.Duration;
 
 import util.Config;
 import util.Log;
@@ -31,8 +32,17 @@ public class Floor implements Runnable {
 	// path to read events from
 	private String filePath;
 	
-	/** Used to generate the random intervals between events */
-	private Random rand = new Random();
+	private PriorityQueue<FloorRequest> requestQueue;
+	private Comparator<FloorRequest> requestTimeComparator = new Comparator<FloorRequest>() {
+        @Override
+        public int compare(FloorRequest o1, FloorRequest o2) {
+            return o1.getRequestTime().compareTo(o2.getRequestTime());
+        }
+    };
+	
+	public Floor() {
+		requestQueue = new PriorityQueue<FloorRequest>(requestTimeComparator);
+	}
 	
 	
 	public void init() {
@@ -47,15 +57,18 @@ public class Floor implements Runnable {
 		init();
 		
 		// hard code file location for now
-		if(filePath == null) {
+		if (filePath == null) {
 			File file = new File("res/test_data.txt");
 			readFromFile(file);
 		}
-		
 		else {
 			File file = new File(filePath);
 			readFromFile(file);
 		}
+		
+		// send events read from file to the Scheduler
+		sendRequestsToScheduler();
+		
 		
 		try {
 			msgHandlerThread.join();
@@ -78,6 +91,49 @@ public class Floor implements Runnable {
 	
 	
 	/**
+	 * Sends the events read into [requestQueue] to the Scheduler using their
+	 *   supplied time deltas if applicable
+	 */
+	private void sendRequestsToScheduler() {
+		FloorRequest prevReq = null;
+		FloorRequest currReq;
+		
+		while (!requestQueue.isEmpty()) {
+			currReq = requestQueue.remove();
+			
+			// wait for the amount of time between requests unless Config flag is set to not do so
+			if (prevReq != null) {
+				Duration duration = Duration.between(prevReq.getRequestTime(), currReq.getRequestTime());
+				
+				try {
+					if (!Config.USE_ZERO_FLOOR_TIME) {
+						// sleep for the duration between requests
+						Thread.sleep(duration.toMillis());
+					}
+					else {
+						Thread.sleep(50L);
+					}
+				} catch (InterruptedException e) {
+					System.err.print(e.getMessage());
+				}
+				
+				msgHandler.send(currReq);
+				Log.log("Floor: Sent event to Scheduler. Event: " + currReq.toString(), Log.Level.INFO);
+			}
+			else {
+				msgHandler.send(currReq);
+				Log.log("Floor: Sent event to Scheduler. Event: " + currReq.toString(), Log.Level.INFO);
+			}
+			
+			prevReq = currReq;
+		}
+		
+		hasMoreEvents = false;
+		msgHandler.send(new NoMoreEventsNotify());
+	}
+	
+	
+	/**
 	 * Reads in FloorEvents from a formatted input file, notifying any waiting threads on each event parsed
 	 * @param file : the file to read the events from
 	 */
@@ -94,31 +150,10 @@ public class Floor implements Runnable {
 				String line = reader.nextLine();
 				try {
 					lastParsed = FloorRequest.parseFromString(line);
-					
-					if (!Config.USE_ZERO_FLOOR_TIME) {
-						// sleep to simulate real time events (between 2 and 6 seconds)
-						Long sleepMs = 2000L * (rand.nextInt(3) + 1);
-						Thread.sleep(sleepMs); // TODO: change this timing to be timing in file
-					}
-					else {
-						Thread.sleep(50L);
-					}
-					
-					Log.log("Floor: Sent event to Scheduler. Event: " + lastParsed.toString(), Log.Level.INFO);
-					
-					// Set hasMoreEvents before the last call to scheduler.putEventFromFloor
-					// Prevents elevator deadlock in the case Scheduler calls hasMoreEvents() in-between calls to putEventFromFloor and setting hasMoreEvents to false
-					if (!reader.hasNextLine()) {
-						hasMoreEvents = false;
-					}
-					
-					msgHandler.send(lastParsed);
+					requestQueue.add(lastParsed);
 					
 				} catch (IllegalArgumentException e) {
-					System.err.print(e.getMessage());
 					e.printStackTrace();
-				} catch (InterruptedException e) {
-					System.err.print(e.getMessage());
 				}
 			}
 			
@@ -131,9 +166,6 @@ public class Floor implements Runnable {
 				reader.close();
 			}
 		}
-		
-		// No more events to read - notify the scheduler.
-		msgHandler.send(new NoMoreEventsNotify());
 	}
 	
 	

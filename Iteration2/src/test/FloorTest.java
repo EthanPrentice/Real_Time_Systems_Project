@@ -63,7 +63,7 @@ class FloorTest {
 			}
 		}
 		
-		FloorRequest testEvent = new FloorRequest(LocalTime.parse("14:06:10.0"), 3, ButtonDirection.DOWN, 1); //The expected last parsed Event object
+		FloorRequest testEvent = FloorRequest.parseFromString("00:00:35.0 3 Down 1"); //The expected last parsed Event object
 		FloorRequest getEvent = floor.getLastParsed();
 		
 		assertEquals(getEvent, testEvent);
@@ -112,17 +112,17 @@ class FloorTest {
 		 while(floorThread.isAlive()) {
 			 try {
 				 Thread.sleep(100L);
-				 } catch(InterruptedException e) {
-					 fail("Thread interrupted!");
-				 	}
+			 } catch(InterruptedException e) {
+				 fail("Thread interrupted!");
+			 }
 		 }
 				
-				//Expected last event
-				FloorRequest testEvent = new FloorRequest(LocalTime.parse("14:06:10.0"), 3, ButtonDirection.DOWN, 1);
+		 //Expected last event
+		 FloorRequest testEvent = FloorRequest.parseFromString("00:00:35.0 3 Down 1");
 				
-				FloorRequest getEvent = scheduler.getLastFloorEvent();
+		 FloorRequest getEvent = scheduler.getLastFloorEvent();
 				
-				//Test the entire scheduler event queue
-				assertEquals(getEvent, testEvent);
+		 //Test the entire scheduler event queue
+		 assertEquals(getEvent, testEvent);
 	}
 }
