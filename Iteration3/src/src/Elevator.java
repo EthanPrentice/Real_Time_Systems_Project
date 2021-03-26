@@ -6,8 +6,12 @@ import src.adt.message.FloorRequest;
 import util.Config;
 import util.Log;
 
+import java.io.IOException;
 import java.lang.Thread;
+import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.PriorityQueue;
 
 /**
@@ -43,6 +47,10 @@ public class Elevator implements Runnable {
         }
     };
     
+    // Manages the errors that will be injected into the system on each floor to simulate hardware faults
+    private ArrayList<ArrayList<ErrorType>> errors = new ArrayList<ArrayList<ErrorType>>(Config.NUM_FLOORS);
+    
+    
     // holds how many people increase in elevator at a given floor
     private int[] floorOccupancy = new int[Config.NUM_FLOORS];
 
@@ -57,11 +65,18 @@ public class Elevator implements Runnable {
 	// testing purposes
 	private FloorRequest lastEvent;
 	
+//	// floor to array of FloorRequests with key as their source floor
+//	private HashMap<Integer, FloorRequest> recoverableRequests;
+	
 	
 	/*
 	 * Initializes variables and runs the MessageHandler in a separate thread
 	 */
-	public void init() {		
+	public void init() {
+		for (int i = 0; i < Config.NUM_FLOORS; ++i) {
+			errors.add(new ArrayList<ErrorType>());
+		}
+		
 		msgHandler = new ElevatorMessageHandler(this);
 		elevatorId = (char) msgHandler.getPort();
 		name = "Elevator " + (int) elevatorId;
@@ -157,6 +172,26 @@ public class Elevator implements Runnable {
 		floorQueue.add(e.getDestFloor());
 		floorQueue.add(e.getSourceFloor());
 		
+		// Add error types to the floors
+		switch (e.getErrorType()) {
+		case NO_ERROR:
+			break;
+			
+		// Always stop floor before the destination floor
+		case UNEXPECTED_STOP:
+			int stopFloor = e.getDestFloor() + (e.getDirection() == ButtonDirection.DOWN ? 1 : -1);
+			errors.get(stopFloor - 1).add(e.getErrorType());
+			break;
+			
+		// Always throw the error at the floor we start at
+		case DOORS_ERROR:
+			errors.get(e.getSourceFloor() - 1).add(e.getErrorType());
+			break;
+		
+		default:
+			throw new IllegalArgumentException("Unexpected error type!");
+		}
+		
 		// Update floor occupancies
 		addEventOccupancy(e);
 		
@@ -212,6 +247,19 @@ public class Elevator implements Runnable {
 
 	private void onDoorsOpen() {
 		Log.log("Elevator doors opened", Log.Level.INFO);
+		
+		Iterator<ErrorType> iter = errors.get(currFloor - 1).iterator();
+		ErrorType error;
+		while (iter.hasNext()) {
+			error = iter.next();
+			
+			if (error == ErrorType.DOORS_ERROR) {
+				throwDoorError();
+				
+				// clear error from floor
+				iter.remove();
+			}
+		}
 
 		// Doors open, wait a bit to close
 		try {
@@ -243,6 +291,21 @@ public class Elevator implements Runnable {
 
 		while (currFloor != targetFloor) {
 			currFloor += delta;
+			
+			
+			Iterator<ErrorType> iter = errors.get(currFloor).iterator();
+			ErrorType error;
+			while (iter.hasNext()) {
+				error = iter.next();
+				
+				if (error == ErrorType.UNEXPECTED_STOP) {
+					throwUnexpectedStopError();
+					
+					// clear error from floor
+					iter.remove();
+				}
+			}
+			
 
 			// send message to notify elevator change
 			ElevStatusNotify m = new ElevStatusNotify(elevatorId, getStatus());
@@ -313,6 +376,52 @@ public class Elevator implements Runnable {
 			break;
 		}
 	}
+	
+	
+	private void throwDoorError() {
+		try {
+			msgHandler.unregister();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		Log.log("ERROR: Doors could not open / close.  Recovering...", Log.Level.INFO);
+		
+		try {
+			// Recover from the error
+			if (!Config.USE_ZERO_FLOOR_TIME) {
+				Thread.sleep(10000L); // wait 10 seconds in normal time
+			}
+			else {
+				Thread.sleep(5000L); // wait 5 seconds in quick time
+			}
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		
+		Log.log("Door error has been recovered.  Continuing.", Log.Level.INFO);
+		
+		try {
+			msgHandler.register();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	
+	private void throwUnexpectedStopError() {
+		try {
+			msgHandler.unregister();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		Log.log("ERROR: Elevator unexpectedly stopped between floors!", Log.Level.INFO);
+		Log.log("Unrecoverable fault. Exiting", Log.Level.INFO);
+		
+		System.exit(-1);
+	}
+	
 
 	/**
 	 * sets the isRunning value to false. Simulates the elevator not running

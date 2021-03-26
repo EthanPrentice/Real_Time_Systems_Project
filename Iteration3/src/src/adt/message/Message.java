@@ -81,6 +81,8 @@ public abstract class Message {
 				return NoMoreEventsNotify.parse(bytes, srcPort);
 			case 0x0007:
 				return RegisterFloorRequest.parse(bytes, srcPort);
+			case 0x0008:
+				return UnregisterElevatorRequest.parse(bytes, srcPort);
 				
 			case 0x0F0F:
 				return MessageAck.parse(bytes, srcPort);

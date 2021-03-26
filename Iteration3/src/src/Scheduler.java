@@ -355,6 +355,22 @@ public class Scheduler implements Runnable {
 	}
 	
 	/**
+	 * Unregisters the elevator with the scheduler, storing it's port and initial status
+	 * @param elevatorId
+	 * @param status
+	 * @param port
+	 */
+	public synchronized void unregisterElevator(char elevatorId, int port) {
+		elevators.remove(elevatorId, port);
+		stoppedElevators.remove(elevatorId);
+		upElevators.remove(elevatorId);
+		downElevators.remove(elevatorId);
+		elevatorStatuses.remove(elevatorId);
+		Log.log("Elevator with ID=" + (int) elevatorId + " has been unregistered on port=" + port, Log.Level.INFO);
+		notifyAll();
+	}
+	
+	/**
 	 * Registers the floor with the scheduler, storing it's port and ensuring it has more events or else we exit
 	 * @param port
 	 * @param hasMoreEvents

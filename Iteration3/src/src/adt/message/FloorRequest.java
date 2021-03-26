@@ -9,6 +9,7 @@ import java.time.format.DateTimeParseException;
 import java.util.*;
 
 import src.adt.ButtonDirection;
+import src.adt.ErrorType;
 
 /**
  * Written for SYSC3303 - Group 6 - Iteration 3 @ Carleton University
@@ -22,18 +23,20 @@ public class FloorRequest extends Message {
 	private int srcFloor;
 	private ButtonDirection btnDirection;
 	private int dstFloor;
+	private ErrorType errorType;
 	
 	
-	public FloorRequest(LocalTime reqTime, int srcFloor, ButtonDirection btnDirection, int dstFloor) {
-		this(reqTime, srcFloor, btnDirection, dstFloor, 0);
+	public FloorRequest(LocalTime reqTime, int srcFloor, ButtonDirection btnDirection, int dstFloor, ErrorType errorType) {
+		this(reqTime, srcFloor, btnDirection, dstFloor, errorType, 0);
 	}
 	
-	public FloorRequest(LocalTime reqTime, int srcFloor, ButtonDirection btnDirection, int dstFloor, int srcPort) {
+	public FloorRequest(LocalTime reqTime, int srcFloor, ButtonDirection btnDirection, int dstFloor, ErrorType errorType, int srcPort) {
 		super(srcPort);
 		this.reqTime = reqTime;
 		this.srcFloor = srcFloor;
 		this.btnDirection = btnDirection;
 		this.dstFloor = dstFloor;
+		this.errorType = errorType;
 	}
 	
 	
@@ -50,6 +53,7 @@ public class FloorRequest extends Message {
 		sj.add(new Integer(srcFloor).toString());
 		sj.add(btnDirection.name());
 		sj.add(new Integer(dstFloor).toString());
+		sj.add(Byte.toString(errorType.stateByte));
 		
 		return sj.toString();
 	}
@@ -70,6 +74,10 @@ public class FloorRequest extends Message {
 	
 	public int getDestFloor() {
 		return dstFloor;
+	}
+	
+	public ErrorType getErrorType() {
+		return errorType;
 	}
 	// End of getters
 	
@@ -100,7 +108,8 @@ public class FloorRequest extends Message {
 			return reqTime.equals(e.reqTime)
 				&& srcFloor == e.srcFloor
 				&& btnDirection.equals(e.btnDirection)
-				&& dstFloor == e.dstFloor;
+				&& dstFloor == e.dstFloor
+				&& errorType == e.errorType;
 		} else {
 			return false;
 		}
@@ -116,7 +125,7 @@ public class FloorRequest extends Message {
 	 */
 	public static FloorRequest parseFromString(String s) throws IllegalArgumentException {	
 		String[] args = s.split("\\s+");
-		if (args.length != 4) {
+		if (args.length != 5) {
 			throw new IllegalArgumentException("Input string has inproper formatting.  Must include 4 variables. (" + s + ")");
 		}
 		
@@ -124,6 +133,7 @@ public class FloorRequest extends Message {
 		ButtonDirection btnDirection = ButtonDirection.fromString(args[2]);
 		int floorNum;
 		int carBtn;
+		ErrorType errorType;
 		
 		// Ensure that event is properly parsed.  Else throw IllegalArgumentException.
 		try {
@@ -148,7 +158,19 @@ public class FloorRequest extends Message {
 			throw new IllegalArgumentException("Car button could not be parsed from input string. (" + s + ")");
 		}
 		
-		return new FloorRequest(reqTime, floorNum, btnDirection, carBtn);
+		try {
+			byte errorByte = Byte.parseByte(args[4]);
+			errorType = ErrorType.fromByte(errorByte);
+			
+			if (errorType == null) {
+				throw new IllegalArgumentException("Illegal ErrorType, \"" + errorByte + "\"");
+			}
+			
+		} catch (NumberFormatException e) {
+			throw new IllegalArgumentException("Car button could not be parsed from input string. (" + s + ")");
+		}
+		
+		return new FloorRequest(reqTime, floorNum, btnDirection, carBtn, errorType);
 	}
 	
 	

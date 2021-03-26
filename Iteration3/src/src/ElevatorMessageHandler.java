@@ -9,6 +9,7 @@ import src.adt.message.MessageAck;
 import src.adt.message.RegisterElevatorRequest;
 import src.adt.message.StopRequest;
 import src.adt.message.StopResponse;
+import src.adt.message.UnregisterElevatorRequest;
 import util.Log;
 
 /**
@@ -34,19 +35,7 @@ public class ElevatorMessageHandler extends MessageHandler {
 			// Construct & bind DatagramSocket to any available port
 			Log.log("Opened socket on port: " + sock.getLocalPort());
 			
-			// Register with the Scheduler so it knows the port of the elevator with this ID
-			RegisterElevatorRequest req = new RegisterElevatorRequest((char) getPort(), elevator.getStatus(), getPort());
-			send(req);
-			// wait for reply so we know we are registered
-			MessageAck ack = (MessageAck) receive();
-			
-			if (ack.getHandledSuccessfully()) {
-				Log.log("Successfully registered with the Scheduler", Log.Level.INFO);
-			}
-			else {
-				Log.log("Failed to register with the Scheduler", Log.Level.INFO);
-			}
-			
+			register(true);			
 			
 		} catch (IOException e) {
 			if (!stopRequested) {
@@ -108,6 +97,51 @@ public class ElevatorMessageHandler extends MessageHandler {
 	 */
 	public void send(Message msg) {
 		super.send(msg, Scheduler.RECEIVE_PORT);
+	}
+	
+	
+	private void register(boolean waitForAck) throws IOException {
+		// Register with the Scheduler so it knows the port of the elevator with this ID
+		RegisterElevatorRequest req = new RegisterElevatorRequest((char) getPort(), elevator.getStatus(), getPort());
+		send(req);
+		
+		// wait for reply so we know we are registered
+		if (waitForAck) {
+			MessageAck ack = (MessageAck) receive();
+		
+			if (ack.getHandledSuccessfully()) {
+				Log.log("Successfully registered with the Scheduler", Log.Level.INFO);
+			}
+			else {
+				Log.log("Failed to register with the Scheduler", Log.Level.INFO);
+			}
+		}
+	}
+	
+	public void register() throws IOException {
+		register(false);
+	}
+	
+	private void unregister(boolean waitForAck) throws IOException {
+		// Register with the Scheduler so it knows the port of the elevator with this ID
+		UnregisterElevatorRequest req = new UnregisterElevatorRequest((char) getPort(), getPort());
+		send(req);
+		
+		// wait for reply so we know we are unregistered
+		if (waitForAck) {
+			MessageAck ack = (MessageAck) receive();
+			
+			if (ack.getHandledSuccessfully()) {
+				Log.log("Successfully unregistered with the Scheduler", Log.Level.INFO);
+			}
+			else {
+				Log.log("Failed to unregister with the Scheduler", Log.Level.INFO);
+			}
+		}
+	}
+	
+	public void unregister() throws IOException {
+		unregister(false);
 	}
 
 	

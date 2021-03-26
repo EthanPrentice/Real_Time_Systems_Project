@@ -12,6 +12,7 @@ import src.adt.message.RegisterElevatorRequest;
 import src.adt.message.RegisterFloorRequest;
 import src.adt.message.StopRequest;
 import src.adt.message.StopResponse;
+import src.adt.message.UnregisterElevatorRequest;
 import util.Log;
 
 /**
@@ -54,6 +55,12 @@ public class SchedulerMessageHandler extends MessageHandler {
 					RegisterElevatorRequest req = (RegisterElevatorRequest) received;
 					scheduler.registerElevator(req.getElevatorId(), req.getStatus(), req.getSrcPort());
 					++activeElevators;
+				}
+				// sent from elevator to unregister port with scheduler
+				else if (received instanceof UnregisterElevatorRequest) {
+					UnregisterElevatorRequest req = (UnregisterElevatorRequest) received;
+					scheduler.unregisterElevator(req.getElevatorId(), req.getSrcPort());
+					--activeElevators;
 				}
 				// sent on state changes & floor changes by the elevators to the scheduler
 				else if (received instanceof ElevStatusNotify) {
