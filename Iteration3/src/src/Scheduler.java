@@ -300,7 +300,7 @@ public class Scheduler implements Runnable {
 	public synchronized void putEventFromFloor(FloorRequest floorRequest) {
 		eventList.add(floorRequest);
 		lastFloorEvent = floorRequest;
-		Log.log("Scheduler: Recieved event from Floor. Event: " + floorRequest.toString());
+		Log.log("Recieved request from Floor. Event: " + floorRequest.toString());
 		
 		// notify we have events
 		notifyAll();
@@ -313,8 +313,26 @@ public class Scheduler implements Runnable {
 	 * @param newFloor: e's new floor
 	 */
 	public void sendEventToFloor(Elevator e, int newFloor) {
-		Log.log("Scheduler: Sent floor changed event to Floor. Elevator now on floor: " + newFloor);
+		Log.log("Sent floor changed event to Floor. Elevator now on floor: " + newFloor);
 	}
+	
+	
+	/**
+	 * Recovers the request from an inoperable elevator to reschedule to a different operating one
+	 * @param requests : the requests that have been sent to recover
+	 * @param recoveredFromId : the id of the elevator these requests were recovered from
+	 */
+	public synchronized void recoverRequests(ArrayList<FloorRequest> requests, char recoveredFromId) {
+		for (FloorRequest req : requests) {
+			eventList.add(req);
+			lastFloorEvent = req;
+			Log.log("Recovered request: " + req.toString() + " from elevator with id=" + (int) recoveredFromId, Log.Level.INFO);
+		}		
+		
+		// notify we have new requests
+		notifyAll();
+	}
+	
 	
 	/**
 	 * Elevator data getter method
@@ -360,12 +378,18 @@ public class Scheduler implements Runnable {
 	 * @param status
 	 * @param port
 	 */
-	public synchronized void unregisterElevator(char elevatorId, int port) {
+	public synchronized void unregisterElevator(char elevatorId, ArrayList<FloorRequest> recoverableRequests, int port) {
+		// remove the elevator from all data structures
 		elevators.remove(elevatorId, port);
 		stoppedElevators.remove(elevatorId);
 		upElevators.remove(elevatorId);
 		downElevators.remove(elevatorId);
 		elevatorStatuses.remove(elevatorId);
+		
+		// recover the recoverable requests (ie. elevator has not picked people up from the floors yet)
+		//    and reschedule them to other working elevators
+		recoverRequests(recoverableRequests, elevatorId);
+		
 		Log.log("Elevator with ID=" + (int) elevatorId + " has been unregistered on port=" + port, Log.Level.INFO);
 		notifyAll();
 	}

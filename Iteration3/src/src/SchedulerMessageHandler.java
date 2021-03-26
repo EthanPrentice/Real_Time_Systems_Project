@@ -59,7 +59,7 @@ public class SchedulerMessageHandler extends MessageHandler {
 				// sent from elevator to unregister port with scheduler
 				else if (received instanceof UnregisterElevatorRequest) {
 					UnregisterElevatorRequest req = (UnregisterElevatorRequest) received;
-					scheduler.unregisterElevator(req.getElevatorId(), req.getSrcPort());
+					scheduler.unregisterElevator(req.getElevatorId(), req.getRecoverableRequests(), req.getSrcPort());
 					--activeElevators;
 				}
 				// sent on state changes & floor changes by the elevators to the scheduler

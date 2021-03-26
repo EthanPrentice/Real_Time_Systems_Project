@@ -126,7 +126,7 @@ public class FloorRequest extends Message {
 	public static FloorRequest parseFromString(String s) throws IllegalArgumentException {	
 		String[] args = s.split("\\s+");
 		if (args.length != 5) {
-			throw new IllegalArgumentException("Input string has inproper formatting.  Must include 4 variables. (" + s + ")");
+			throw new IllegalArgumentException("Input string has inproper formatting.  Must include 5 variables. (" + s + ")");
 		}
 		
 		LocalTime reqTime;

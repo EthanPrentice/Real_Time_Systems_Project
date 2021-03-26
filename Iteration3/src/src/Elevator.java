@@ -65,8 +65,8 @@ public class Elevator implements Runnable {
 	// testing purposes
 	private FloorRequest lastEvent;
 	
-//	// floor to array of FloorRequests with key as their source floor
-//	private HashMap<Integer, FloorRequest> recoverableRequests;
+	// floor to array of FloorRequests with key as their source floor
+	private HashMap<Integer, ArrayList<FloorRequest>> recoverableRequests = new HashMap<>();
 	
 	
 	/*
@@ -75,6 +75,10 @@ public class Elevator implements Runnable {
 	public void init() {
 		for (int i = 0; i < Config.NUM_FLOORS; ++i) {
 			errors.add(new ArrayList<ErrorType>());
+		}
+		
+		for (int i = 0; i < Config.NUM_FLOORS; ++i) {
+			recoverableRequests.put(i + 1, new ArrayList<FloorRequest>());
 		}
 		
 		msgHandler = new ElevatorMessageHandler(this);
@@ -172,14 +176,18 @@ public class Elevator implements Runnable {
 		floorQueue.add(e.getDestFloor());
 		floorQueue.add(e.getSourceFloor());
 		
+		// add request to recoverableEvents in-case there is a fault and another elevator must service
+		//    these requests
+		recoverableRequests.get(e.getSourceFloor()).add(e);
+		
 		// Add error types to the floors
 		switch (e.getErrorType()) {
 		case NO_ERROR:
 			break;
 			
-		// Always stop floor before the destination floor
+		// Always stop floor in middle of the request
 		case UNEXPECTED_STOP:
-			int stopFloor = e.getDestFloor() + (e.getDirection() == ButtonDirection.DOWN ? 1 : -1);
+			int stopFloor = e.getSourceFloor() + Math.abs(e.getDestFloor() - e.getSourceFloor()) / 2;
 			errors.get(stopFloor - 1).add(e.getErrorType());
 			break;
 			
@@ -247,6 +255,9 @@ public class Elevator implements Runnable {
 
 	private void onDoorsOpen() {
 		Log.log("Elevator doors opened", Log.Level.INFO);
+		
+		
+		recoverableRequests.get(currFloor).clear();
 		
 		Iterator<ErrorType> iter = errors.get(currFloor - 1).iterator();
 		ErrorType error;
@@ -442,6 +453,17 @@ public class Elevator implements Runnable {
 	 */
 	public FloorRequest getLastEvent() {
 		return this.lastEvent;
+	}
+	
+	
+	public ArrayList<FloorRequest> getRecoverableRequests() {
+		ArrayList<FloorRequest> reqs = new ArrayList<>();
+		
+		for (Integer key : recoverableRequests.keySet()) {
+			reqs.addAll(recoverableRequests.get(key));
+		}
+		
+		return reqs;
 	}
 	
 	

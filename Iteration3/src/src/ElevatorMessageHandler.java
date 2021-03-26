@@ -124,7 +124,7 @@ public class ElevatorMessageHandler extends MessageHandler {
 	
 	private void unregister(boolean waitForAck) throws IOException {
 		// Register with the Scheduler so it knows the port of the elevator with this ID
-		UnregisterElevatorRequest req = new UnregisterElevatorRequest((char) getPort(), getPort());
+		UnregisterElevatorRequest req = new UnregisterElevatorRequest((char) getPort(), elevator.getRecoverableRequests(), getPort());
 		send(req);
 		
 		// wait for reply so we know we are unregistered
