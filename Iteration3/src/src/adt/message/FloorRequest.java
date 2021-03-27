@@ -82,6 +82,11 @@ public class FloorRequest extends Message {
 	// End of getters
 	
 	
+	public void clearError() {
+		errorType = ErrorType.NO_ERROR;
+	}
+	
+	
 	@Override
 	public byte[] toBytes() {
 		byte[] msgBytes = getDataString().getBytes();

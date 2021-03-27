@@ -191,9 +191,9 @@ public class Elevator implements Runnable {
 			errors.get(stopFloor - 1).add(e.getErrorType());
 			break;
 			
-		// Always throw the error at the floor we start at
+		// Always throw the error at the floor we end at
 		case DOORS_ERROR:
-			errors.get(e.getSourceFloor() - 1).add(e.getErrorType());
+			errors.get(e.getDestFloor() - 1).add(e.getErrorType());
 			break;
 		
 		default:
@@ -256,7 +256,6 @@ public class Elevator implements Runnable {
 	private void onDoorsOpen() {
 		Log.log("Elevator doors opened", Log.Level.INFO);
 		
-		
 		recoverableRequests.get(currFloor).clear();
 		
 		Iterator<ErrorType> iter = errors.get(currFloor - 1).iterator();
@@ -287,6 +286,7 @@ public class Elevator implements Runnable {
 		}
 
 		changeState(ElevatorState.DOORS_CLOSED);
+		recoverableRequests.get(currFloor).clear();
 	}
 
 
@@ -302,7 +302,6 @@ public class Elevator implements Runnable {
 
 		while (currFloor != targetFloor) {
 			currFloor += delta;
-			
 			
 			Iterator<ErrorType> iter = errors.get(currFloor).iterator();
 			ErrorType error;
@@ -390,11 +389,11 @@ public class Elevator implements Runnable {
 	
 	
 	private void throwDoorError() {
-		try {
-			msgHandler.unregister();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+//		try {
+//			msgHandler.unregister();
+//		} catch (IOException e) {
+//			e.printStackTrace();
+//		}
 		
 		Log.log("ERROR: Doors could not open / close.  Recovering...", Log.Level.INFO);
 		
@@ -404,7 +403,7 @@ public class Elevator implements Runnable {
 				Thread.sleep(10000L); // wait 10 seconds in normal time
 			}
 			else {
-				Thread.sleep(5000L); // wait 5 seconds in quick time
+				Thread.sleep(2000L); // wait 2 seconds in quick time
 			}
 		} catch (InterruptedException e) {
 			e.printStackTrace();
@@ -412,11 +411,11 @@ public class Elevator implements Runnable {
 		
 		Log.log("Door error has been recovered.  Continuing.", Log.Level.INFO);
 		
-		try {
-			msgHandler.register();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+//		try {
+//			msgHandler.register();
+//		} catch (IOException e) {
+//			e.printStackTrace();
+//		}
 	}
 	
 	

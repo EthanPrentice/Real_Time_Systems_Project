@@ -114,8 +114,8 @@ public class Scheduler implements Runnable {
 		}
 		
 		return status.getState() == ElevatorState.STOPPED
-			|| (status.getState() == ElevatorState.MOVING_UP && status.getFloor() <= floorRequest.getSourceFloor() && floorRequest.getDirection() == ButtonDirection.UP)
-			|| (status.getState() == ElevatorState.MOVING_DOWN && status.getFloor() >= floorRequest.getSourceFloor() && floorRequest.getDirection() == ButtonDirection.DOWN);
+			|| (status.getState() == ElevatorState.MOVING_UP && status.getFloor() < floorRequest.getSourceFloor() && floorRequest.getDirection() == ButtonDirection.UP)
+			|| (status.getState() == ElevatorState.MOVING_DOWN && status.getFloor() > floorRequest.getSourceFloor() && floorRequest.getDirection() == ButtonDirection.DOWN);
 	}
 	
 	/**
@@ -324,6 +324,10 @@ public class Scheduler implements Runnable {
 	 */
 	public synchronized void recoverRequests(ArrayList<FloorRequest> requests, char recoveredFromId) {
 		for (FloorRequest req : requests) {
+			// If this is the req that caused an error, clear it
+			// Only process errors once
+			req.clearError();
+			
 			eventList.add(req);
 			lastFloorEvent = req;
 			Log.log("Recovered request: " + req.toString() + " from elevator with id=" + (int) recoveredFromId, Log.Level.INFO);
@@ -386,11 +390,12 @@ public class Scheduler implements Runnable {
 		downElevators.remove(elevatorId);
 		elevatorStatuses.remove(elevatorId);
 		
+		Log.log("Elevator with ID=" + (int) elevatorId + " has been unregistered on port=" + port, Log.Level.INFO);
+		
 		// recover the recoverable requests (ie. elevator has not picked people up from the floors yet)
 		//    and reschedule them to other working elevators
 		recoverRequests(recoverableRequests, elevatorId);
 		
-		Log.log("Elevator with ID=" + (int) elevatorId + " has been unregistered on port=" + port, Log.Level.INFO);
 		notifyAll();
 	}
 	
