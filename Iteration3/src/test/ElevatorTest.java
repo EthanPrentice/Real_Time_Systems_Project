@@ -138,7 +138,7 @@ class ElevatorTest {
 	}
 
 	/**
-	 * Test recoverable error handling. Here, 
+	 * Test recoverable error handling. Here, an elevator encounters a fault, recovers and then finishes all requests
 	 */
 	@Test
 	void testRecoverableError() {
@@ -166,10 +166,4 @@ class ElevatorTest {
 			assertEquals(elevator.getStatus().getState(), ElevatorState.STOPPED); //Make sure the elevator is stopped and the doors are closed
 	}
 	
-	/**
-	 * Test fatal error handling
-	 */
-	void testFatalError() {
-		
-	}
 }

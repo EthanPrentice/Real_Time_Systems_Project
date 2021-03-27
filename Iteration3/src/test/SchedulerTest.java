@@ -138,10 +138,10 @@ class SchedulerTest {
 	}
 
 	/**
-	 * Test that the scheduler receives events from an elevator that encounters a fatal error
+	 * Test that the scheduler still completes requests if one elevator encounters a fatal error
 	 */
 	@Test
-	void testFatalErrorReceive() {
+	void testFatalError() {
 		System.out.println("----Fatal Error Receive----");
 		floor.setFilePath("res/fatal_error_test.txt");
 		
@@ -155,7 +155,7 @@ class SchedulerTest {
 		floorThread.start();
 
 		// wait for threads to end
-		while(elevator2Thread.isAlive()) {
+		while(floorThread.isAlive() || schedulerThread.isAlive() || elevatorThread.isAlive() || elevator2Thread.isAlive()) {
 			try {
 				Thread.sleep(100L);
 			} catch(InterruptedException e) {
@@ -163,7 +163,8 @@ class SchedulerTest {
 			}
 		}
 		
-		assertTrue(elevator.getStatus().getFloor() == 9 ||elevator2.getStatus().getFloor() == 9);
+		//Make sure that at least 1 elevator finishes all requests and ends up on floor 9
+		assertTrue(elevator.getStatus().getFloor() == 9 || elevator2.getStatus().getFloor() == 9);
 		assertEquals(elevator.getStatus().getState(), ElevatorState.STOPPED); //Make sure the elevator is stopped and the doors are closed
 		assertEquals(elevator2.getStatus().getState(), ElevatorState.STOPPED); //Make sure the elevator is stopped and the doors are closed
 		
