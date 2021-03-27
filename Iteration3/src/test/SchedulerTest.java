@@ -16,7 +16,9 @@ import src.adt.message.FloorRequest;
 import util.Config;
 
 /**
- * Tests all functions and paths of the scheduler state machine
+ * Tests all functions and paths of the scheduler state machine. Implements integration testing
+ * to show all components of the system functioning together, implements acceptance testing to show proper system
+ * functioning.
  * Written for SYSC3303 - Group 6 - Iteration 3 @ Carleton University
  * @author Nicholas Milani 101075096
  *
@@ -48,6 +50,7 @@ class SchedulerTest {
 	@Test
 	void testFloorEventReceived() {
 		System.out.println("----Scheduler Receive Test----");
+		floor.setFilePath("res/test_data_noerror.txt");
 		schedulerThread.start();
 
 		scheduler.waitUntilCanRegister();
@@ -75,6 +78,7 @@ class SchedulerTest {
 	@Test
 	void testSendEvent() {
 		System.out.println("----Scheduler Send Test----");
+		floor.setFilePath("res/test_data_noerror.txt");
 		schedulerThread.start();
 
 		scheduler.waitUntilCanRegister();
@@ -92,7 +96,7 @@ class SchedulerTest {
 		}
 
 		//Expected last event
-		FloorRequest testEvent = FloorRequest.parseFromString("00:00:33.0 2 UP 5");
+		FloorRequest testEvent = FloorRequest.parseFromString("00:00:27.0 3 UP 7 0");
 		FloorRequest getEvent = elevator.getLastEvent();
 
 		//Test the entire scheduler event queue
@@ -132,4 +136,38 @@ class SchedulerTest {
 		assertEquals(elevator.getStatus().getState(), ElevatorState.STOPPED); //Make sure the elevator is stopped and the doors are closed
 		assertEquals(elevator2.getStatus().getState(), ElevatorState.STOPPED); //Make sure the elevator is stopped and the doors are closed
 	}
+
+	/**
+	 * Test that the scheduler receives events from an elevator that encounters a fatal error
+	 */
+	@Test
+	void testFatalErrorReceive() {
+		System.out.println("----Fatal Error Receive----");
+		floor.setFilePath("res/fatal_error_test.txt");
+		
+		Elevator elevator2 = new Elevator();
+		Thread elevator2Thread = new Thread(elevator2, "Elevator 2");
+		
+		schedulerThread.start();
+		scheduler.waitUntilCanRegister();
+		elevatorThread.start();
+		elevator2Thread.start();
+		floorThread.start();
+
+		// wait for threads to end
+		while(elevator2Thread.isAlive()) {
+			try {
+				Thread.sleep(100L);
+			} catch(InterruptedException e) {
+				fail("Thread interrupted!");
+			}
+		}
+		
+		FloorRequest getEvent = scheduler.getLastFloorEvent();
+		FloorRequest floorEvent = floor.getLastParsed();
+
+		assertEquals(getEvent, floorEvent);
+	}
 }
+
+

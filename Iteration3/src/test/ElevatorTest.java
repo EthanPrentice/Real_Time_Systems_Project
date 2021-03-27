@@ -15,7 +15,9 @@ import src.adt.*;
 import util.Config;
 
 /**
- * Tests all possible paths for the Elevator state machine using varying test data
+ * Tests all possible paths for the Elevator state machine using varying test data. Implements integration testing
+ * to show all components of the system functioning together, implements acceptance testing to show proper system
+ * functioning.
  * Written for SYSC3303 - Group 6 - Iteration 3 @ Carleton University
  * @author Nicholas Milani 101075096
  *
@@ -39,7 +41,6 @@ class ElevatorTest {
 		floorThread = new Thread(floor, "Floor");
 		elevatorThread = new Thread(elevator, "Elevator");
 		schedulerThread = new Thread(scheduler, "Scheduler");
-		
 	}
 	
 	/**
@@ -136,5 +137,39 @@ class ElevatorTest {
 		assertEquals(elevator.getStatus().getState(), ElevatorState.STOPPED); //Make sure the elevator is stopped and the doors are closed
 	}
 
+	/**
+	 * Test recoverable error handling. Here, 
+	 */
+	@Test
+	void testRecoverableError() {
+		System.out.println("----Recoverable Error Test----");
+		floor.setFilePath("res/recoverable_error_test.txt");
+		
+		assertEquals(elevator.getStatus().getFloor(), 0); //Make sure the elevator starts on the ground floor
+		assertEquals(elevator.getStatus().getState(), ElevatorState.STOPPED); //Make sure the elevator is stopped and the doors are closed
+		
+		 schedulerThread.start();
+		 scheduler.waitUntilCanRegister();
+		 elevatorThread.start();
+		 floorThread.start();
+		 
+			// wait for threads to end
+			while(floorThread.isAlive() || schedulerThread.isAlive() || elevatorThread.isAlive()) {
+				try {
+					Thread.sleep(100L);
+				} catch(InterruptedException e) {
+					fail("Thread interrupted!");
+				}
+			}
+			
+			assertEquals(elevator.getStatus().getFloor(), 8); //The expected last floor for the elevator to be stopped at
+			assertEquals(elevator.getStatus().getState(), ElevatorState.STOPPED); //Make sure the elevator is stopped and the doors are closed
+	}
 	
+	/**
+	 * Test fatal error handling
+	 */
+	void testFatalError() {
+		
+	}
 }
