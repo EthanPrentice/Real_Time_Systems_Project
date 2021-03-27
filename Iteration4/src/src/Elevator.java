@@ -298,8 +298,9 @@ public class Elevator implements Runnable {
 	/**
 	 * Moves floor-by-floor to the targetFloor 
 	 * @param targetFloor
+	 * @return successful
 	 */
-	private void moveToFloor(int targetFloor) {
+	private boolean moveToFloor(int targetFloor) {
 		int delta = 1;
 		if (currState == ElevatorState.MOVING_DOWN) {
 			delta = -1;
@@ -315,9 +316,9 @@ public class Elevator implements Runnable {
 				
 				if (error == ErrorType.UNEXPECTED_STOP) {
 					throwUnexpectedStopError();
-					
 					// clear error from floor
 					iter.remove();
+					return false;
 				}
 			}
 			
@@ -340,6 +341,8 @@ public class Elevator implements Runnable {
 				e.printStackTrace();
 			}
 		}
+		
+		return true;
 	}
 
 	
@@ -355,7 +358,9 @@ public class Elevator implements Runnable {
 		switch(newState) {
 		case MOVING_UP:
 		case MOVING_DOWN:
-			moveToFloor(targetFloor);
+			if (!moveToFloor(targetFloor)) {
+				return;
+			}
 			
 			// open doors once the floor has been reached
 			changeState(ElevatorState.DOORS_OPEN);
