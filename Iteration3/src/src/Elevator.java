@@ -112,6 +112,11 @@ public class Elevator implements Runnable {
 							break;
 						}
 					}
+					
+					// Wait a small amount of time in-case of incoming piled up duplicate requests
+					//  so that we do not act too fast
+					Thread.sleep(50L);
+					
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
