@@ -155,4 +155,15 @@ public class ElevatorMessageHandler extends MessageHandler {
 			sock.close();
 		}
 	}
+	
+	/** 
+	 * forces the handler to stop - should be used after unregistering the elevator
+	 * does not send a stop response to the scheduler since the scheduler did not initialize this stop
+	 */
+	public void forceStop() {
+		if (!stopRequested) {
+			stopRequested = true;			
+			sock.close();
+		}
+	}
 }
