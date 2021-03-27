@@ -51,6 +51,7 @@ class FloorTest {
 	@Test
 	void testFloorParsing() {
 		System.out.println("----Floor Parsing Test----");
+		floor.setFilePath("res/test_data_noerror.txt");
 		schedulerThread.start();
 		scheduler.waitUntilCanRegister();
 		elevatorThread.start();
@@ -65,7 +66,7 @@ class FloorTest {
 			}
 		}
 		
-		FloorRequest testEvent = FloorRequest.parseFromString("00:00:35.0 3 Down 1"); //The expected last parsed Event object
+		FloorRequest testEvent = FloorRequest.parseFromString("00:00:27.0 3 UP 7 0"); //The expected last parsed Event object
 		FloorRequest getEvent = floor.getLastParsed();
 		
 		assertEquals(getEvent, testEvent);
@@ -78,6 +79,7 @@ class FloorTest {
 	@Test
 	void testFloorReceive() {
 		System.out.println("----Floor Receive Request----");
+		floor.setFilePath("res/test_data_noerror.txt");
 		schedulerThread.start();
 		scheduler.waitUntilCanRegister();
 		elevatorThread.start();
@@ -94,7 +96,7 @@ class FloorTest {
 		}
 		
 
-		assertEquals(floor.getLastFloor(), 5); //The expected last floor 5
+		assertEquals(floor.getLastFloor(), 8); //The expected last floor 5
 		
 	}
 
@@ -105,6 +107,7 @@ class FloorTest {
 	 @Test
 	 void testFloorSend() {
 		 System.out.println("----Floor Send Test----");
+		 floor.setFilePath("res/test_data_noerror.txt");
 		 schedulerThread.start();
 		 scheduler.waitUntilCanRegister();
 		 elevatorThread.start();
@@ -120,7 +123,7 @@ class FloorTest {
 		 }
 				
 		 //Expected last event
-		 FloorRequest testEvent = FloorRequest.parseFromString("00:00:35.0 3 Down 1");
+		 FloorRequest testEvent = FloorRequest.parseFromString("00:00:27.0 3 UP 7 0");
 				
 		 FloorRequest getEvent = scheduler.getLastFloorEvent();
 				

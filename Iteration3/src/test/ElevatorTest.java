@@ -17,7 +17,7 @@ import util.Config;
 /**
  * Tests all possible paths for the Elevator state machine using varying test data. Implements integration testing
  * to show all components of the system functioning together, implements acceptance testing to show proper system
- * functioning.
+ * functioning, even in the event of a fault.
  * Written for SYSC3303 - Group 6 - Iteration 3 @ Carleton University
  * @author Nicholas Milani 101075096
  *

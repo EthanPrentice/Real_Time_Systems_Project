@@ -18,7 +18,7 @@ import util.Config;
 /**
  * Tests all functions and paths of the scheduler state machine. Implements integration testing
  * to show all components of the system functioning together, implements acceptance testing to show proper system
- * functioning.
+ * functioning, even in the event of a fault.
  * Written for SYSC3303 - Group 6 - Iteration 3 @ Carleton University
  * @author Nicholas Milani 101075096
  *
@@ -163,10 +163,10 @@ class SchedulerTest {
 			}
 		}
 		
-		FloorRequest getEvent = scheduler.getLastFloorEvent();
-		FloorRequest floorEvent = floor.getLastParsed();
-
-		assertEquals(getEvent, floorEvent);
+		assertTrue(elevator.getStatus().getFloor() == 9 ||elevator2.getStatus().getFloor() == 9);
+		assertEquals(elevator.getStatus().getState(), ElevatorState.STOPPED); //Make sure the elevator is stopped and the doors are closed
+		assertEquals(elevator2.getStatus().getState(), ElevatorState.STOPPED); //Make sure the elevator is stopped and the doors are closed
+		
 	}
 }
 
