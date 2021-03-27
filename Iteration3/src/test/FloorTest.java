@@ -52,6 +52,8 @@ class FloorTest {
 	void testFloorParsing() {
 		System.out.println("----Floor Parsing Test----");
 		floor.setFilePath("res/test_data_noerror.txt");
+		
+		//Run all components of the system for integration testing
 		schedulerThread.start();
 		scheduler.waitUntilCanRegister();
 		elevatorThread.start();
@@ -80,6 +82,8 @@ class FloorTest {
 	void testFloorReceive() {
 		System.out.println("----Floor Receive Request----");
 		floor.setFilePath("res/test_data_noerror.txt");
+		
+		//Run all components of the system for integration testing
 		schedulerThread.start();
 		scheduler.waitUntilCanRegister();
 		elevatorThread.start();
@@ -108,6 +112,8 @@ class FloorTest {
 	 void testFloorSend() {
 		 System.out.println("----Floor Send Test----");
 		 floor.setFilePath("res/test_data_noerror.txt");
+		 
+		//Run all components of the system for integration testing
 		 schedulerThread.start();
 		 scheduler.waitUntilCanRegister();
 		 elevatorThread.start();

@@ -54,10 +54,9 @@ class ElevatorTest {
 		assertEquals(elevator.getStatus().getFloor(), 0); //Make sure the elevator starts on the ground floor
 		assertEquals(elevator.getStatus().getState(), ElevatorState.STOPPED); //Make sure the elevator is stopped and the doors are closed
 		
+		//Run all components of the system for integration testing
 		schedulerThread.start();
-		
 		scheduler.waitUntilCanRegister();
-		
 		floorThread.start();
 		elevatorThread.start();
 		
@@ -85,10 +84,9 @@ class ElevatorTest {
 		assertEquals(elevator.getStatus().getFloor(), 0); //Make sure the elevator starts on the ground floor
 		assertEquals(elevator.getStatus().getState(), ElevatorState.STOPPED); //Make sure the elevator is stopped and the doors are closed
 
+		//Run all components of the system for integration testing
 		schedulerThread.start();
-		
 		scheduler.waitUntilCanRegister();
-		
 		floorThread.start();
 		elevatorThread.start();
 		
@@ -116,10 +114,9 @@ class ElevatorTest {
 		assertEquals(elevator.getStatus().getFloor(), 0); //Make sure the elevator starts on the ground floor
 		assertEquals(elevator.getStatus().getState(), ElevatorState.STOPPED); //Make sure the elevator is stopped and the doors are closed
 		
+		//Run all components of the system for integration testing
 		schedulerThread.start();
-		
 		scheduler.waitUntilCanRegister();
-		
 		elevatorThread.start();
 		floorThread.start();
 		
@@ -138,7 +135,8 @@ class ElevatorTest {
 	}
 
 	/**
-	 * Test recoverable error handling. Here, an elevator encounters a fault, recovers and then finishes all requests
+	 * Acceptance testing to test recoverable error handling. Here, an elevator encounters a fault,
+	 * recovers and then finishes all requests
 	 */
 	@Test
 	void testRecoverableError() {
@@ -148,6 +146,7 @@ class ElevatorTest {
 		assertEquals(elevator.getStatus().getFloor(), 0); //Make sure the elevator starts on the ground floor
 		assertEquals(elevator.getStatus().getState(), ElevatorState.STOPPED); //Make sure the elevator is stopped and the doors are closed
 		
+		//Run all components of the system for integration testing
 		 schedulerThread.start();
 		 scheduler.waitUntilCanRegister();
 		 elevatorThread.start();

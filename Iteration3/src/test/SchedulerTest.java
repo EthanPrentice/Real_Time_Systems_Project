@@ -51,10 +51,10 @@ class SchedulerTest {
 	void testFloorEventReceived() {
 		System.out.println("----Scheduler Receive Test----");
 		floor.setFilePath("res/test_data_noerror.txt");
+		
+		//Run all components of the system for integration testing
 		schedulerThread.start();
-
 		scheduler.waitUntilCanRegister();
-
 		elevatorThread.start();
 		floorThread.start();
 
@@ -79,10 +79,10 @@ class SchedulerTest {
 	void testSendEvent() {
 		System.out.println("----Scheduler Send Test----");
 		floor.setFilePath("res/test_data_noerror.txt");
+		
+		//Run all components of the system for integration testing
 		schedulerThread.start();
-
 		scheduler.waitUntilCanRegister();
-
 		floorThread.start();
 		elevatorThread.start();
 
@@ -115,10 +115,9 @@ class SchedulerTest {
 		Elevator elevator2 = new Elevator();
 		Thread elevator2Thread = new Thread(elevator2, "Elevator 2");
 
+		//Run all components of the system for integration testing (multiple elevators)
 		schedulerThread.start();
-
 		scheduler.waitUntilCanRegister();
-
 		elevatorThread.start();
 		elevator2Thread.start();
 		floorThread.start();
@@ -138,7 +137,7 @@ class SchedulerTest {
 	}
 
 	/**
-	 * Test that the scheduler still completes requests if one elevator encounters a fatal error
+	 * Acceptance testing to test that the scheduler still completes requests if one elevator encounters a fatal error
 	 */
 	@Test
 	void testFatalError() {
@@ -148,6 +147,7 @@ class SchedulerTest {
 		Elevator elevator2 = new Elevator();
 		Thread elevator2Thread = new Thread(elevator2, "Elevator 2");
 		
+		//Run all components of the system for integration testing (multiple elevators)
 		schedulerThread.start();
 		scheduler.waitUntilCanRegister();
 		elevatorThread.start();
