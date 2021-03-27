@@ -435,7 +435,7 @@ public class Elevator implements Runnable {
 		Log.log("ERROR: Elevator unexpectedly stopped between floors!", Log.Level.INFO);
 		Log.log("Unrecoverable fault. Exiting", Log.Level.INFO);
 		
-		System.exit(-1);
+		forceStop();
 	}
 	
 
@@ -445,6 +445,18 @@ public class Elevator implements Runnable {
 	public void requestStop() {
 		stopRequested = true;
 		synchronized(floorQueueLock) {
+			floorQueueLock.notifyAll();
+		}
+	}
+	
+	/**
+	 * sets the isRunning value to false. Simulates the elevator not running
+	 */
+	public void forceStop() {
+		stopRequested = true;
+		msgHandler.forceStop();
+		synchronized(floorQueueLock) {
+			floorQueue.clear();
 			floorQueueLock.notifyAll();
 		}
 	}
