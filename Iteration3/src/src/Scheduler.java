@@ -377,9 +377,9 @@ public class Scheduler implements Runnable {
 	}
 	
 	/**
-	 * Unregisters the elevator with the scheduler, storing it's port and initial status
+	 * Unregisters the elevator with the scheduler, storing it's port and initial status and rescheduling any recoverable requests
 	 * @param elevatorId
-	 * @param status
+	 * @param recoverableRequests
 	 * @param port
 	 */
 	public synchronized void unregisterElevator(char elevatorId, ArrayList<FloorRequest> recoverableRequests, int port) {

@@ -393,17 +393,17 @@ public class Elevator implements Runnable {
 	}
 	
 	
+	/**
+	 * This is a recoverable error that can so we do not unregister from the scheduler
+	 * From the spec, we can assume that we always recover from this error, so we simulate the
+	 *   elevator recovering with a time delay
+	 */
 	private void throwDoorError() {
-//		try {
-//			msgHandler.unregister();
-//		} catch (IOException e) {
-//			e.printStackTrace();
-//		}
-		
 		Log.log("ERROR: Doors could not open / close.  Recovering...", Log.Level.INFO);
 		
 		try {
-			// Recover from the error
+			// Simulate recovering from the error after a given amount of time
+			// ie. a foot was put in the door, or the sensor didn't say the door was closed
 			if (!Config.USE_ZERO_FLOOR_TIME) {
 				Thread.sleep(10000L); // wait 10 seconds in normal time
 			}
@@ -415,15 +415,16 @@ public class Elevator implements Runnable {
 		}
 		
 		Log.log("Door error has been recovered.  Continuing.", Log.Level.INFO);
-		
-//		try {
-//			msgHandler.register();
-//		} catch (IOException e) {
-//			e.printStackTrace();
-//		}
 	}
 	
 	
+	/**
+	 * This is a non-recoverable error, so we must unregister from the Scheduler
+	 * Any requests that have not been started (ie. passengers have not been picked up)
+	 *   will be sent back to the Scheduler to be sent to another operable elevator
+	 * Unfortunately, those in the elevator at the time of the fault will have to wait to be saved
+	 *   and these requests will not be rescheduled to another elevator
+	 */
 	private void throwUnexpectedStopError() {
 		try {
 			msgHandler.unregister();
