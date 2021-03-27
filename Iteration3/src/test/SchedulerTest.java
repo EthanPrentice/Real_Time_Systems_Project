@@ -49,6 +49,13 @@ class SchedulerTest {
 	 */
 	@Test
 	void testFloorEventReceived() {
+		//Sleep to give sockets time to close
+		try {
+			Thread.sleep(100L);
+		} catch(InterruptedException e) {
+			fail("Thread interrupted!");
+		}
+		
 		System.out.println("----Scheduler Receive Test----");
 		floor.setFilePath("res/test_data_noerror.txt");
 		
@@ -77,6 +84,13 @@ class SchedulerTest {
 	 */
 	@Test
 	void testSendEvent() {
+		//Sleep to give sockets time to close
+		try {
+			Thread.sleep(100L);
+		} catch(InterruptedException e) {
+			fail("Thread interrupted!");
+		}
+		
 		System.out.println("----Scheduler Send Test----");
 		floor.setFilePath("res/test_data_noerror.txt");
 		
@@ -108,6 +122,13 @@ class SchedulerTest {
 	 */
 	@Test
 	void testMultipleElevators() {
+		//Sleep to give sockets time to close
+		try {
+			Thread.sleep(100L);
+		} catch(InterruptedException e) {
+			fail("Thread interrupted!");
+		}
+		
 		System.out.println("----Multiple Elevator Scheduling Test----");
 		floor.setFilePath("res/multiple_elevator_test.txt");
 
@@ -141,6 +162,13 @@ class SchedulerTest {
 	 */
 	@Test
 	void testFatalError() {
+		//Sleep to give sockets time to close
+		try {
+			Thread.sleep(100L);
+		} catch(InterruptedException e) {
+			fail("Thread interrupted!");
+		}
+		
 		System.out.println("----Fatal Error Receive----");
 		floor.setFilePath("res/fatal_error_test.txt");
 		

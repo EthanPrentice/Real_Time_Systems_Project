@@ -50,6 +50,12 @@ class FloorTest {
 	 */
 	@Test
 	void testFloorParsing() {
+		//Sleep to give sockets time to close
+		try {
+			Thread.sleep(100L);
+		} catch(InterruptedException e) {
+			fail("Thread interrupted!");
+		}
 		System.out.println("----Floor Parsing Test----");
 		floor.setFilePath("res/test_data_noerror.txt");
 		
@@ -80,6 +86,12 @@ class FloorTest {
 	 */
 	@Test
 	void testFloorReceive() {
+		//Sleep to give sockets time to close
+		try {
+			Thread.sleep(100L);
+		} catch(InterruptedException e) {
+			fail("Thread interrupted!");
+		}
 		System.out.println("----Floor Receive Request----");
 		floor.setFilePath("res/test_data_noerror.txt");
 		
@@ -110,6 +122,12 @@ class FloorTest {
 	 */
 	 @Test
 	 void testFloorSend() {
+			//Sleep to give sockets time to close
+			try {
+				Thread.sleep(100L);
+			} catch(InterruptedException e) {
+				fail("Thread interrupted!");
+			}
 		 System.out.println("----Floor Send Test----");
 		 floor.setFilePath("res/test_data_noerror.txt");
 		 

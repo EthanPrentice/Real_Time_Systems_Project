@@ -48,6 +48,12 @@ class ElevatorTest {
 	 */
 	@Test
 	void testSameFloorRequest() {
+		//Sleep to give sockets time to close
+		try {
+			Thread.sleep(100L);
+		} catch(InterruptedException e) {
+			fail("Thread interrupted!");
+		}
 		System.out.println("----Same Floor Request----");
 		floor.setFilePath("res/same_floor_test.txt");
 
@@ -78,6 +84,14 @@ class ElevatorTest {
 	 */
 	@Test
 	void testLowerFloorRequest() {
+		
+		//Sleep to give sockets time to close
+		try {
+			Thread.sleep(100L);
+		} catch(InterruptedException e) {
+			fail("Thread interrupted!");
+		}
+		
 		System.out.println("----Lower Floor Request----");
 		floor.setFilePath("res/lower_floor_test.txt");
 		
@@ -108,6 +122,14 @@ class ElevatorTest {
 	 */
 	@Test
 	void testUpperFloorRequest() {
+		
+		//Sleep to give sockets time to close
+		try {
+			Thread.sleep(100L);
+		} catch(InterruptedException e) {
+			fail("Thread interrupted!");
+		}
+		
 		System.out.println("----Upper Floor Request----");
 		floor.setFilePath("res/upper_floor_test.txt");
 
@@ -140,6 +162,14 @@ class ElevatorTest {
 	 */
 	@Test
 	void testRecoverableError() {
+		
+		//Sleep to give sockets time to close
+		try {
+			Thread.sleep(100L);
+		} catch(InterruptedException e) {
+			fail("Thread interrupted!");
+		}
+		
 		System.out.println("----Recoverable Error Test----");
 		floor.setFilePath("res/recoverable_error_test.txt");
 		
