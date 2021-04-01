@@ -14,7 +14,7 @@ public class ElevatorErrorHandler implements Runnable {
 	private static final long DOOR_TIMER = 20_000L;
 	private static final long FLOOR_TIMER = 15_000L;
 	
-	private long currTimerLength = -1;
+	private long currTimerLength = 0;
 	private long timerStartedMs = 0;
 	
 	private boolean stopRequested = false;
@@ -33,12 +33,8 @@ public class ElevatorErrorHandler implements Runnable {
 	public synchronized void run() {
 		while (!stopRequested) {
 			try {
-				while (currTimerLength == -1 || !timerTripped()) {
-					if (currTimerLength == -1) {
-						wait();
-					} else {
-						wait(currTimerLength);
-					}
+				while (currTimerLength == 0 || !timerTripped()) {
+					wait(currTimerLength);
 					
 					if (stopRequested) {
 						return;
@@ -99,7 +95,7 @@ public class ElevatorErrorHandler implements Runnable {
 			break;
 			
 		default: // clear timer
-			currTimerLength = -1;
+			currTimerLength = 0;
 			break;
 		}
 		
