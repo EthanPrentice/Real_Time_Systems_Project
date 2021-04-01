@@ -34,7 +34,16 @@ public class ElevatorErrorHandler implements Runnable {
 		while (!stopRequested) {
 			try {
 				while (currTimerLength == 0 || !timerTripped()) {
-					wait(currTimerLength);
+					if (currTimerLength == 0) {
+						wait(currTimerLength);
+					}
+					else {
+						// We must include this in-case the thread is woken up unexpectedly.
+						// ie. if we wait for currTimerLength - 1ms and unexpectedly get woken up, we would 
+						//   wait for another currTimerLength ms before checking if the timer was tripped
+						//   so we would not check if the timer was tripped for nearly twice the timer length
+						wait(currTimerLength - (System.currentTimeMillis() - timerStartedMs));
+					}
 					
 					if (stopRequested) {
 						return;

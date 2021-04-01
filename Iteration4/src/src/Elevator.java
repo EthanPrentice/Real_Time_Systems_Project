@@ -376,6 +376,8 @@ public class Elevator implements Runnable {
 		switch(newState) {
 		case MOVING_UP:
 		case MOVING_DOWN:
+			notifyStatusChanged();
+			
 			if (!moveToFloor(targetFloor)) {
 				return;
 			}
