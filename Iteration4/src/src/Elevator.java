@@ -345,11 +345,7 @@ public class Elevator implements Runnable {
 				}
 			}
 			
-
-			// send message to notify elevator change
-			ElevStatusNotify m = new ElevStatusNotify(elevatorId, getStatus());
-			msgHandler.send(m);
-			errHandler.updateStatus(getStatus());
+			notifyStatusChanged();
 
 			try {
 				// NOTE: This uses actual time between floors from data from iteration 0
@@ -376,8 +372,6 @@ public class Elevator implements Runnable {
 	 */
 	private void changeState(ElevatorState newState) {
 		currState = newState;
-		
-		ElevStatusNotify msg;
 
 		switch(newState) {
 		case MOVING_UP:
@@ -391,19 +385,13 @@ public class Elevator implements Runnable {
 			break;
 
 		case DOORS_OPEN:
-			// send message to notify elevator change
-			msg = new ElevStatusNotify(elevatorId, getStatus());
-			msgHandler.send(msg);
-			errHandler.updateStatus(getStatus());
+			notifyStatusChanged();
 			
 			onDoorsOpen();
 			break;
 
 		case DOORS_CLOSED:
-			// send message to notify elevator change
-			msg = new ElevStatusNotify(elevatorId, getStatus());
-			msgHandler.send(msg);
-			errHandler.updateStatus(getStatus());
+			notifyStatusChanged();
 			
 			Log.log("Elevator doors have closed", Log.Level.INFO);
 			if (floorQueue.isEmpty()) {
@@ -417,9 +405,7 @@ public class Elevator implements Runnable {
 				floorOccupancy[i] = 0;
 			}
 			
-			ElevStatusNotify m = new ElevStatusNotify(elevatorId, getStatus());
-			msgHandler.send(m);
-			errHandler.updateStatus(getStatus());
+			notifyStatusChanged();
 			break;
 		}
 	}
@@ -479,6 +465,15 @@ public class Elevator implements Runnable {
 		synchronized(this) {
 			notifyAll();
 		}
+	}
+	
+	/**
+	 * Notifies relevant subsystems & threads that this Elevator's status has changed
+	 */
+	private void notifyStatusChanged() {
+		ElevStatusNotify m = new ElevStatusNotify(elevatorId, getStatus());
+		msgHandler.send(m);
+		errHandler.updateStatus(getStatus());
 	}
 	
 
