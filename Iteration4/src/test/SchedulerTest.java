@@ -191,8 +191,8 @@ class SchedulerTest {
 			}
 		}
 		
-		//Make sure that at least 1 elevator finishes all requests and ends up on floor 9
-		assertTrue(elevator.getStatus().getFloor() == 9 || elevator2.getStatus().getFloor() == 9);
+		//Make sure that at least 1 elevator finishes all requests and ends up on floor 1
+		assertTrue(elevator.getStatus().getFloor() == 1 || elevator2.getStatus().getFloor() == 1);
 		assertEquals(elevator.getStatus().getState(), ElevatorState.STOPPED); //Make sure the elevator is stopped and the doors are closed
 		assertEquals(elevator2.getStatus().getState(), ElevatorState.STOPPED); //Make sure the elevator is stopped and the doors are closed
 		

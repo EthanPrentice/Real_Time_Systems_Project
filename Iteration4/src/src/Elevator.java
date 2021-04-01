@@ -27,6 +27,9 @@ public class Elevator implements Runnable {
 	Thread msgHandlerThread;
 	ElevatorMessageHandler msgHandler;
 	
+	Thread errHandlerThread;
+	ElevatorErrorHandler errHandler;
+	
 	// Unique identifier for this instance of the Elevator
 	private char elevatorId;
 	
@@ -89,6 +92,10 @@ public class Elevator implements Runnable {
 		
 		msgHandlerThread = new Thread(msgHandler, name + " MsgHandler");
 		msgHandlerThread.start();
+		
+		errHandler = new ElevatorErrorHandler(this);
+		errHandlerThread = new Thread(errHandler, name + " ErrHandler");
+		errHandlerThread.start();
 	}
 	
 
@@ -109,6 +116,7 @@ public class Elevator implements Runnable {
 						// if elevator has no events and has been signaled to exit, exit
 						if (stopRequested && floorQueue.isEmpty()) {
 							msgHandler.requestStop();
+							errHandler.requestStop();
 							break;
 						}
 					}
@@ -147,6 +155,7 @@ public class Elevator implements Runnable {
 		}
 		
 		msgHandler.requestStop();
+		errHandler.requestStop();
 		
 		// Exit once the message handler has stopped
 		try {
@@ -269,7 +278,14 @@ public class Elevator implements Runnable {
 			error = iter.next();
 			
 			if (error == ErrorType.DOORS_ERROR) {
-				throwDoorError();
+				// Wait to show that door has encountered an error and trigger error handler
+				try {
+					synchronized(this) {
+						wait();
+					}
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
 				
 				// clear error from floor
 				iter.remove();
@@ -315,7 +331,14 @@ public class Elevator implements Runnable {
 				error = iter.next();
 				
 				if (error == ErrorType.UNEXPECTED_STOP) {
-					throwUnexpectedStopError();
+					// Wait to show that elevator has encountered an error and trigger error handler
+					try {
+						synchronized(this) {
+							wait();
+						}
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
 					// clear error from floor
 					iter.remove();
 					return false;
@@ -326,6 +349,7 @@ public class Elevator implements Runnable {
 			// send message to notify elevator change
 			ElevStatusNotify m = new ElevStatusNotify(elevatorId, getStatus());
 			msgHandler.send(m);
+			errHandler.updateStatus(getStatus());
 
 			try {
 				// NOTE: This uses actual time between floors from data from iteration 0
@@ -370,6 +394,7 @@ public class Elevator implements Runnable {
 			// send message to notify elevator change
 			msg = new ElevStatusNotify(elevatorId, getStatus());
 			msgHandler.send(msg);
+			errHandler.updateStatus(getStatus());
 			
 			onDoorsOpen();
 			break;
@@ -378,6 +403,7 @@ public class Elevator implements Runnable {
 			// send message to notify elevator change
 			msg = new ElevStatusNotify(elevatorId, getStatus());
 			msgHandler.send(msg);
+			errHandler.updateStatus(getStatus());
 			
 			Log.log("Elevator doors have closed", Log.Level.INFO);
 			if (floorQueue.isEmpty()) {
@@ -393,6 +419,7 @@ public class Elevator implements Runnable {
 			
 			ElevStatusNotify m = new ElevStatusNotify(elevatorId, getStatus());
 			msgHandler.send(m);
+			errHandler.updateStatus(getStatus());
 			break;
 		}
 	}
@@ -403,7 +430,7 @@ public class Elevator implements Runnable {
 	 * From the spec, we can assume that we always recover from this error, so we simulate the
 	 *   elevator recovering with a time delay
 	 */
-	private void throwDoorError() {
+	public void handleDoorError() {
 		Log.log("ERROR: Doors could not open / close.  Recovering...", Log.Level.INFO);
 		
 		try {
@@ -420,6 +447,12 @@ public class Elevator implements Runnable {
 		}
 		
 		Log.log("Door error has been recovered.  Continuing.", Log.Level.INFO);
+		
+		errHandler.updateStatus(getStatus());
+		
+		synchronized(this) {
+			notifyAll();
+		}
 	}
 	
 	
@@ -430,7 +463,7 @@ public class Elevator implements Runnable {
 	 * Unfortunately, those in the elevator at the time of the fault will have to wait to be saved
 	 *   and these requests will not be rescheduled to another elevator
 	 */
-	private synchronized void throwUnexpectedStopError() {
+	public void handleUnexpectedStopError() {
 		try {
 			msgHandler.unregister();
 			forceStop();
@@ -440,6 +473,12 @@ public class Elevator implements Runnable {
 		
 		Log.log("ERROR: Elevator unexpectedly stopped between floors!", Log.Level.INFO);
 		Log.log("Unrecoverable fault. Exiting", Log.Level.INFO);
+		
+		errHandler.updateStatus(getStatus());
+		
+		synchronized(this) {
+			notifyAll();
+		}
 	}
 	
 
@@ -459,6 +498,11 @@ public class Elevator implements Runnable {
 	public void forceStop() {
 		stopRequested = true;
 		msgHandler.forceStop();
+		errHandler.requestStop();
+		
+		// do not use changeState here on purpose.
+		currState = ElevatorState.STOPPED;
+		
 		synchronized(floorQueueLock) {
 			floorQueue.clear();
 			floorQueueLock.notifyAll();
