@@ -531,7 +531,7 @@ public class Elevator implements Runnable {
 	
 	static public void main(String[] args) {
 		// set to INFO for demo.  Use verbose / debug for testing
-		Log.setLevel(Log.Level.INFO);
+		Log.setLevel(Log.Level.VERBOSE);
 		
 		Elevator e = new Elevator();
 		e.run();
