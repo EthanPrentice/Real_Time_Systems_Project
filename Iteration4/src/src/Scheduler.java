@@ -55,6 +55,8 @@ public class Scheduler implements Runnable {
 	// true if scheduler thread should stop when it is safe to do so
 	private boolean stopRequested = false;
 	
+	private UIManager uiManager;
+	
 	
 	/**
 	 * Constructor, saves references to the floor and elevator
@@ -65,6 +67,7 @@ public class Scheduler implements Runnable {
 		msgHandler = new SchedulerMessageHandler(this);
 		msgHandlerThread = new Thread(msgHandler, "Scheduler MsgHandler");
 		msgHandlerThread.start();
+		uiManager = new UIManager();
 	}
 	
 	
@@ -370,6 +373,7 @@ public class Scheduler implements Runnable {
 	 * @param port
 	 */
 	public synchronized void registerElevator(char elevatorId, ElevatorStatus status, int port) {
+		uiManager.registerElevator(elevatorId, status);
 		elevators.put(elevatorId, port);
 		stoppedElevators.add(elevatorId);
 		elevatorStatuses.put(elevatorId, status);
@@ -419,6 +423,7 @@ public class Scheduler implements Runnable {
 	 * @param status
 	 */
 	public synchronized void updateElevatorStatus(char elevatorId, ElevatorStatus status) {
+		uiManager.updateElevatorStatus(elevatorId, status);
 		elevatorStatuses.put(elevatorId, status);
 		Log.log("Elevator with ID=" + (int) elevatorId + " has updated status=" + status.toString(), Log.Level.VERBOSE);
 		if (status.getState() == ElevatorState.STOPPED) {
