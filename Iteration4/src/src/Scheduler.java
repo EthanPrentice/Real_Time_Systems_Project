@@ -7,7 +7,6 @@ import java.util.Iterator;
 
 import src.adt.*;
 import src.adt.message.FloorRequest;
-import src.adt.message.Message;
 import src.adt.message.StopRequest;
 import util.Log;
 

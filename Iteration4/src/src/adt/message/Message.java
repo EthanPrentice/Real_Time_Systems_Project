@@ -46,9 +46,7 @@ public abstract class Message {
 	}
 	
 	protected char getHeader() {
-		synchronized(Message.class) {
-			return getHeader(getClass());
-		}
+		return getHeader(getClass());
 	}
 	// END OF GETTERS / SETTERS
 	
