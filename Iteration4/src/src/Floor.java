@@ -234,7 +234,7 @@ public class Floor implements Runnable {
 	
 	
 	public static void main(String[] args) {
-		Log.setLevel(Log.Level.INFO);
+		Log.setLevel(Log.Level.VERBOSE);
 		Thread.currentThread().setName("Floor");
 		
 		Floor floor = new Floor();

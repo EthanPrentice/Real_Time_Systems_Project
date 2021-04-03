@@ -7,6 +7,7 @@ import java.nio.ByteBuffer;
 
 import src.adt.ElevatorState;
 import src.adt.ElevatorStatus;
+import util.Log;
 
 /**
  * Written for SYSC3303 - Group 6 - Iteration 3 @ Carleton University
@@ -34,8 +35,8 @@ public class RegisterElevatorRequest extends Message {
 	
 	@Override
 	public String toString() {
-		String format = "RegisterElevatorRequest(elevatorId=%d, port=%d)";
-		return String.format(format, (int) elevatorId, srcPort);
+		String format = "RegisterElevatorRequest(elevatorId=%d, port=%d, status=%s)";
+		return String.format(format, (int) elevatorId, srcPort, status.toString());
 	}
 	
 	public ElevatorStatus getStatus() {
@@ -52,7 +53,7 @@ public class RegisterElevatorRequest extends Message {
 		ByteArrayOutputStream inStream = new ByteArrayOutputStream();
 		DataOutputStream dos = new DataOutputStream(inStream);
 		try {
-			dos.write(new byte[]{0, 3});
+			dos.writeChar(getHeader());
 			dos.writeChar(elevatorId);
 			
 			dos.writeInt(status.getFloor());
@@ -60,7 +61,6 @@ public class RegisterElevatorRequest extends Message {
 			for (int i : status.getFloorOccupancy()) {
 				dos.writeInt(i);
 			}
-			
 			
 			return inStream.toByteArray();
 			
@@ -78,8 +78,11 @@ public class RegisterElevatorRequest extends Message {
 	 * 
 	 * @return A parsed RegisterElevatorRequest from [bytes].
 	 */
-	public static RegisterElevatorRequest parse(byte[] bytes, int srcPort) {		
-		ByteBuffer buff = ByteBuffer.wrap(bytes, 2, bytes.length - 2);
+	public static RegisterElevatorRequest parse(byte[] bytes, int srcPort) {
+		Log.log("rer-p-1", Log.Level.INFO);
+		ByteBuffer buff = ByteBuffer.wrap(bytes);
+		buff.getChar(); // header
+		
 		char elevatorId = buff.getChar();
 		
 		int currFloor = buff.getInt();
@@ -94,5 +97,5 @@ public class RegisterElevatorRequest extends Message {
 		
 		return new RegisterElevatorRequest(elevatorId, status, srcPort);
 	}
-
+	
 }

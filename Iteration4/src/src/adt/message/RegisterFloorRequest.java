@@ -1,5 +1,9 @@
 package src.adt.message;
 
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+
 /**
  * Written for SYSC3303 - Group 6 - Iteration 3 @ Carleton University
  * @author Ethan Prentice (101070194)
@@ -8,7 +12,7 @@ package src.adt.message;
  * This allows the Scheduler to know which port the Floor is running on to send it
  *   status updates originating from the Elevators
  */
-public class RegisterFloorRequest extends Message {
+public class RegisterFloorRequest extends Message {	
 	
 	private boolean hasMoreEvents;
 	
@@ -33,9 +37,19 @@ public class RegisterFloorRequest extends Message {
 	
 	@Override
 	public byte[] toBytes() {
-		return new byte[] {0, 0x07, (byte) (hasMoreEvents ? 1 : 0)};
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		DataOutputStream dos = new DataOutputStream(bos);
+		
+		try {
+			dos.writeChar(getHeader());	
+			dos.write((hasMoreEvents ? 1 : 0));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		return bos.toByteArray();
 	}
-	
+
 	
 	/**
 	 * @param bytes The byte array to read in the RegisterFloorRequest from
@@ -47,5 +61,5 @@ public class RegisterFloorRequest extends Message {
 		boolean hasMoreEvents = bytes[2] == 1;
 		return new RegisterFloorRequest(hasMoreEvents, srcPort);
 	}
-
+	
 }

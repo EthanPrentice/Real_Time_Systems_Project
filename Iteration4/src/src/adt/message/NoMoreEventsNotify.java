@@ -1,5 +1,9 @@
 package src.adt.message;
 
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+
 /**
  * Written for SYSC3303 - Group 6 - Iteration 3 @ Carleton University
  * @author Ethan Prentice (101070194)
@@ -29,8 +33,18 @@ public class NoMoreEventsNotify extends Message {
 	
 	@Override
 	public byte[] toBytes() {
-		return new byte[] {0, 0x06};
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		DataOutputStream dos = new DataOutputStream(bos);
+		
+		try {
+			dos.writeChar(getHeader());			
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		return bos.toByteArray();
 	}
+
 
 	/**
 	 * @param bytes The byte array to read in the NoMoreEventsNotify from
@@ -41,5 +55,4 @@ public class NoMoreEventsNotify extends Message {
 	public static NoMoreEventsNotify parse(byte[] bytes, int srcPort) {
 		return new NoMoreEventsNotify(srcPort);
 	}
-	
 }

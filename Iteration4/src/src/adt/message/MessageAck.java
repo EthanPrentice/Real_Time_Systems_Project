@@ -1,5 +1,10 @@
 package src.adt.message;
 
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+
 /**
  * Written for SYSC3303 - Assignment 3 @ Carleton University
  * Modified for SYSC3303 - Group 6 - Iteration 3
@@ -43,24 +48,23 @@ public class MessageAck extends Message {
 	public byte[] toBytes() {
 		byte successByte = (byte) (handledSuccessfully ? 1 : 0);
 		byte hasMessageByte = (byte) ((requestedMessage != null) ? 1 : 0);
-		
-		if (requestedMessage == null) {
-			return new byte[] {0x0F, 0x0F, successByte, hasMessageByte};
+
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		DataOutputStream dos = new DataOutputStream(bos);
+		try {
+			dos.writeChar(getHeader());
+			dos.write(successByte);
+			dos.write(hasMessageByte);
+			
+			if (requestedMessage != null) {
+				dos.write(requestedMessage.toBytes());
+			}
+			
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 		
-		byte[] reqMsgBytes = requestedMessage.toBytes();
-		byte[] msgBytes = new byte[4 + reqMsgBytes.length];
-		
-		msgBytes[0] = 0x0F;
-		msgBytes[1] = 0x0F;
-		msgBytes[2] = successByte;
-		msgBytes[3] = hasMessageByte;
-		
-		for (int i = 4; i < msgBytes.length; ++i) {
-			msgBytes[i] = reqMsgBytes[i - 4];
-		}
-		
-		return msgBytes;
+		return bos.toByteArray();
 	}
 	
 	
@@ -80,7 +84,6 @@ public class MessageAck extends Message {
 		return String.format(format, handledSuccessfully, requestedMessage);
 	}
 	
-	
 	/**
 	 * @param bytes The byte array to read in the MessageAck from
 	 * @throws IllegalArgumentException if the request cannot be parsed from the bytes
@@ -88,23 +91,25 @@ public class MessageAck extends Message {
 	 * @return A parsed MessageAck from [bytes].
 	 */
 	public static MessageAck parse(byte[] bytes, int srcPort) {
+		ByteBuffer buff = ByteBuffer.wrap(bytes);
 		
-		if (bytes.length >= 4 && bytes[0] == 0xF && bytes[1] == 0xF) {
+		if (bytes.length >= 4) {
 			
 			// Message also came with another Message to return to the sender
-			if (bytes[3] == 1) {
-				byte[] msgReqBytes = new byte[bytes.length - 4];
-				System.arraycopy(bytes, 4, msgReqBytes, 0, msgReqBytes.length);
+			boolean handledSuccessfully = (buff.get() == 1);
+			if (buff.get() == 1) { // has message
+				byte[] msgReqBytes = new byte[buff.remaining()];
+				buff.get(msgReqBytes);
 				
 				Message requestedMessage = Message.fromBytes(msgReqBytes, srcPort, false);
 				
-				return new MessageAck(bytes[2] == 1, requestedMessage, srcPort);
+				return new MessageAck(handledSuccessfully, requestedMessage, srcPort);
 			}
 			
 			// No additional Message to contain, send back empty acknowledgement
-			return new MessageAck(bytes[2] == 1, srcPort);
+			return new MessageAck(handledSuccessfully, srcPort);
 		}
 		return null;
 	}
-
+	
 }
