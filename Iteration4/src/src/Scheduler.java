@@ -7,7 +7,6 @@ import java.util.Iterator;
 
 import src.adt.*;
 import src.adt.message.FloorRequest;
-import src.adt.message.Message;
 import src.adt.message.StopRequest;
 import util.Log;
 
@@ -475,7 +474,7 @@ public class Scheduler implements Runnable {
 	 */
 	public static void main(String[] args) {		
 		// set to INFO for demo.  Use verbose / debug for testing
-		Log.setLevel(Log.Level.VERBOSE);
+		Log.setLevel(Log.Level.INFO);
 		Thread.currentThread().setName("Scheduler");
 		
 		Scheduler scheduler = new Scheduler();

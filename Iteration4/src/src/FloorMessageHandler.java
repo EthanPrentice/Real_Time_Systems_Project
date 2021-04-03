@@ -3,6 +3,7 @@ package src;
 import java.io.IOException;
 
 import src.adt.MessageHandler;
+import src.adt.message.CompletedFloorRequest;
 import src.adt.message.ElevStatusNotify;
 import src.adt.message.Message;
 import src.adt.message.MessageAck;
@@ -55,6 +56,10 @@ public class FloorMessageHandler extends MessageHandler {
 				else if (received instanceof ElevStatusNotify) {
 					ElevStatusNotify req = (ElevStatusNotify) received;					
 					floor.receiveElevatorStatus(req.getElevatorId(), req.getStatus());
+				}
+				else if (received instanceof CompletedFloorRequest) {
+					CompletedFloorRequest req = (CompletedFloorRequest) received;
+					floor.handleCompletedFloorRequest(req.getElevatorId(), req.getFloorRequest());
 				}
 				// sent by the scheduler to notify the Floor that all Elevators have exited
 				// and that the MessageHandler can close since it will not receive any more messages

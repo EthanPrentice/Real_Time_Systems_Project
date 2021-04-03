@@ -206,6 +206,13 @@ public class Floor implements Runnable {
 	
 	
 	/**
+	 * 
+	 */
+	public void handleCompletedFloorRequest(char elevatorId, FloorRequest completedReq) {
+		Log.log("Notified that the request has been completed: " + completedReq.toString() + " by elevator: " + (int) elevatorId, Log.Level.INFO);
+	}
+	
+	/**
 	 * @return whether the file being read has events left
 	 */
 	public boolean hasMoreEvents() {
@@ -234,7 +241,7 @@ public class Floor implements Runnable {
 	
 	
 	public static void main(String[] args) {
-		Log.setLevel(Log.Level.VERBOSE);
+		Log.setLevel(Log.Level.INFO);
 		Thread.currentThread().setName("Floor");
 		
 		Floor floor = new Floor();
