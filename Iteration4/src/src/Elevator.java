@@ -281,11 +281,6 @@ public class Elevator implements Runnable {
 		}
 		recoverableRequests.get(currFloor).clear();
 		
-		// in progress requests -> finished requests
-		for (FloorRequest req : inProgressRequests.get(currFloor)) {
-			msgHandler.send(new CompletedFloorRequest(elevatorId, req));
-		}
-		
 		Iterator<ErrorType> iter = errors.get(currFloor - 1).iterator();
 		ErrorType error;
 		while (iter.hasNext()) {
@@ -410,6 +405,13 @@ public class Elevator implements Runnable {
 			notifyStatusChanged();
 			
 			Log.log("Elevator doors have closed", Log.Level.INFO);
+			
+			// in progress requests -> finished requests
+			for (FloorRequest req : inProgressRequests.get(currFloor)) {
+				msgHandler.send(new CompletedFloorRequest(elevatorId, req));
+			}
+			inProgressRequests.get(currFloor).clear();
+			
 			if (floorQueue.isEmpty()) {
 				changeState(ElevatorState.STOPPED);
 			}

@@ -92,6 +92,7 @@ public class MessageAck extends Message {
 	 */
 	public static MessageAck parse(byte[] bytes, int srcPort) {
 		ByteBuffer buff = ByteBuffer.wrap(bytes);
+		buff.getChar(); // header
 		
 		if (bytes.length >= 4) {
 			

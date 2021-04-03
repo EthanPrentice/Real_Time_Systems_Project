@@ -114,6 +114,7 @@ public class ElevatorMessageHandler extends MessageHandler {
 			}
 			else {
 				Log.log("Failed to register with the Scheduler", Log.Level.INFO);
+				System.exit(-1);
 			}
 		}
 	}

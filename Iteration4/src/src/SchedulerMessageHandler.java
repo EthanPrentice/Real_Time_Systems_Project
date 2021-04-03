@@ -107,6 +107,7 @@ public class SchedulerMessageHandler extends MessageHandler {
 				}
 				// unrecognized message, send MessageAck failure
 				else {
+					Log.log("Unexpected message: " + received.toString(), Log.Level.INFO);
 					send(new MessageAck(false), received.getSrcPort());
 					continue;
 				}
