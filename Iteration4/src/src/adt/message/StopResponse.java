@@ -1,5 +1,9 @@
 package src.adt.message;
 
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+
 /**
  * Written for SYSC3303 - Group 6 - Iteration 3 @ Carleton University
  * @author Ethan Prentice (101070194)
@@ -8,7 +12,7 @@ package src.adt.message;
  * This is not always sent directly after a StopRequest since it may not be safe
  *   for the subsystem to stop when it receives the initial StopRequest
  */
-public class StopResponse extends Message {
+public class StopResponse extends Message {	
 	
 	public StopResponse() {
 		this(0);
@@ -25,8 +29,18 @@ public class StopResponse extends Message {
 
 	@Override
 	public byte[] toBytes() {
-		return new byte[] {0x0, 0x05};
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		DataOutputStream dos = new DataOutputStream(bos);
+		
+		try {
+			dos.writeChar(getHeader());	
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		return bos.toByteArray();
 	}
+	
 	
 	/**
 	 * @param bytes The byte array to read in the StopRequest from

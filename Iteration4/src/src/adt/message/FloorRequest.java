@@ -19,6 +19,7 @@ import src.adt.ErrorType;
  * Sent to the Elevator to notify it to handle an event initiated by the Floor
  */
 public class FloorRequest extends Message {
+	
 	private LocalTime reqTime;
 	private int srcFloor;
 	private ButtonDirection btnDirection;
@@ -94,8 +95,7 @@ public class FloorRequest extends Message {
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		DataOutputStream dos = new DataOutputStream(bos);
 		try {
-			dos.writeByte(0x00);
-			dos.writeByte(0x01);
+			dos.writeChar(getHeader());
 			dos.write(msgBytes);
 			
 		} catch (IOException e) {

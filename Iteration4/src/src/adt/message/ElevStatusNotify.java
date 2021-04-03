@@ -35,7 +35,7 @@ public class ElevStatusNotify extends Message {
 	
 	@Override
 	public String toString() {
-		String format = "ElevStatusRequest(elevatorId=%d, status=%s)";
+		String format = "ElevStatusNotify(elevatorId=%d, status=%s)";
 		return String.format(format, (int) elevatorId, status.toString());
 	}
 	
@@ -54,7 +54,7 @@ public class ElevStatusNotify extends Message {
 		ByteArrayOutputStream inStream = new ByteArrayOutputStream();
 		DataOutputStream dos = new DataOutputStream(inStream);
 		try {
-			dos.write(new byte[]{0, 0x02});
+			dos.writeChar(getHeader());
 			dos.writeByte(status.getState().stateByte);
 			dos.writeChar(elevatorId);
 			dos.writeInt(status.getFloor());
@@ -70,8 +70,7 @@ public class ElevStatusNotify extends Message {
 		}
 		
 		return null;
-	}
-	
+	}	
 	
 	/**
 	 * @param bytes The byte array to read in the ElevStatusNotify from
@@ -80,9 +79,11 @@ public class ElevStatusNotify extends Message {
 	 * @return A parsed ElevStatusNotify from [bytes].
 	 */
 	public static ElevStatusNotify parse(byte[] bytes, int srcPort) {
-		ElevatorState state = ElevatorState.fromByte(bytes[2]);
+		ByteBuffer buff = ByteBuffer.wrap(bytes);
+		buff.getChar(); // header
 		
-		ByteBuffer buff = ByteBuffer.wrap(bytes, 3, bytes.length - 3);
+		
+		ElevatorState state = ElevatorState.fromByte(buff.get());
 		char elevatorId = buff.getChar();
 		int currFloor = buff.getInt();
 		
@@ -93,6 +94,5 @@ public class ElevStatusNotify extends Message {
 		
 		return new ElevStatusNotify(elevatorId, new ElevatorStatus(currFloor, state, floorOccupancy), srcPort);
 	}
-	
 
 }

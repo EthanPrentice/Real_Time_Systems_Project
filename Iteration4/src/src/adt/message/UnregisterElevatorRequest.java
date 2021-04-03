@@ -49,7 +49,7 @@ public class UnregisterElevatorRequest extends Message {
 		ByteArrayOutputStream inStream = new ByteArrayOutputStream();
 		DataOutputStream dos = new DataOutputStream(inStream);
 		try {
-			dos.write(new byte[]{0, 8});
+			dos.writeChar(getHeader());
 			dos.writeChar(elevatorId);
 			
 			for (int i = 0; i < recoverableReqs.size(); ++i) {
@@ -108,6 +108,5 @@ public class UnregisterElevatorRequest extends Message {
 		
 		return new UnregisterElevatorRequest(elevatorId, reqs, srcPort);
 	}
-
 
 }

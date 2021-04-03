@@ -28,6 +28,8 @@ public abstract class MessageHandler implements Runnable {
 	}
 	
 	protected MessageHandler(int sockPort) {
+		Message.registerParsers();
+		
 		try {
 			// Construct & bind DatagramSocket to any available port
 			sock = new DatagramSocket(sockPort);
@@ -94,7 +96,7 @@ public abstract class MessageHandler implements Runnable {
 		Log.log("Packet contents (bytes): " + Arrays.toString(received.toBytes()) + "\n");
 		
 		if (received instanceof UnparsableMessage) {
-			throw new IllegalStateException("Received an UnparsableMessage!! " + received.toString());
+			throw new IllegalStateException("Received an UnparsableMessage: " + received.toString() + " " + Arrays.toString(received.toBytes()));
 		}
 		return received;
 	}

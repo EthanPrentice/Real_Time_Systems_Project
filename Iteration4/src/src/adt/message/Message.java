@@ -1,5 +1,10 @@
 package src.adt.message;
 
+import java.nio.ByteBuffer;
+import java.util.HashMap;
+
+import util.Log;
+
 /**
  * Written for SYSC3303 - Assignment 2 @ Carleton University
  * Modified for SYSC3303 - Group 6 - Iteration 3
@@ -9,7 +14,12 @@ package src.adt.message;
  */
 public abstract class Message {
 	
+	// stores the parsers for the message type(s) represented by header (key)
+	private static HashMap<Character, MessageParser> parserMap = new HashMap<>();
+	private static HashMap<Class<? extends Message>, Character> headerMap = new HashMap<>();
+	
 	public static final int MAX_BYTES = 100;
+	
 	
 	// local port that the message is sent from
 	protected int srcPort = 0;
@@ -34,8 +44,13 @@ public abstract class Message {
 	public void setSrcPort(int port) {
 		srcPort = port;
 	}
-	// END OF GETTERS / SETTERS
 	
+	protected char getHeader() {
+		synchronized(Message.class) {
+			return getHeader(getClass());
+		}
+	}
+	// END OF GETTERS / SETTERS
 	
 	/**
 	 * @return the expected byte representation of the Message
@@ -64,41 +79,80 @@ public abstract class Message {
 		
 		// msgHeader is the first two bytes of the byte array
 		// these encode which type of Message the byte array is
-		char msgHeader = (char) ((bytes[0] << 8) | bytes[1]);
-		try {
-			switch (msgHeader) {
-			case 0x0001:
-				return FloorRequest.parse(bytes, srcPort);
-			case 0x0002:
-				return ElevStatusNotify.parse(bytes, srcPort);
-			case 0x0003:
-				return RegisterElevatorRequest.parse(bytes, srcPort);
-			case 0x0004:
-				return StopRequest.parse(bytes, srcPort);
-			case 0x0005:
-				return StopResponse.parse(bytes, srcPort);
-			case 0x0006:
-				return NoMoreEventsNotify.parse(bytes, srcPort);
-			case 0x0007:
-				return RegisterFloorRequest.parse(bytes, srcPort);
-			case 0x0008:
-				return UnregisterElevatorRequest.parse(bytes, srcPort);
-				
-			case 0x0F0F:
-				return MessageAck.parse(bytes, srcPort);
-				
-			default: // Invalid header
-				throw new IllegalArgumentException(String.format("Illegal message header. (0x%04X)", msgHeader));
-			}
-			
-		} catch (IllegalArgumentException e) {
-			// If we can't parse the message, either throw an error or return an UnparsableMessage if throwErr=false
-			if (throwErr) {
-				throw e;
-			} else {
-				return UnparsableMessage.parse(bytes, srcPort);
+		ByteBuffer buff = ByteBuffer.wrap(bytes);
+		char msgHeader = buff.getChar();
+		
+		MessageParser parser;
+		parser = parserMap.get(msgHeader);
+		if (parser != null) {
+			try {
+				return parser.parse(bytes, srcPort);
+			} catch (Exception e) {
+				if (throwErr) {
+					throw new IllegalArgumentException(e);
+				}
+				else {
+					return UnparsableMessage.parse(bytes, srcPort);
+				}
 			}
 		}
+		else if (throwErr) {
+			throw new IllegalArgumentException(String.format("Illegal message header! (0x%04X)", (int) msgHeader));
+		}
+		else {
+			return UnparsableMessage.parse(bytes, srcPort);
+		}
+	}
+	
+	
+	/**
+	 * Registers a header with a message parser
+	 * @return whether the header could successfully be registered with the factory
+	 */
+	private synchronized static boolean registerParser(Class<? extends Message> clazz, MessageParser parser) {
+		if (headerMap.containsKey(clazz)) {
+			return false;
+		}
+		
+		char header = (char) (headerMap.size() + 1);
+		headerMap.put(clazz, header);
+		parserMap.put(header, parser);
+		return true;
+	}
+	
+	/**
+	 * Registers all valid message types with the factory
+	 * ALL subclasses of 
+	 */
+	public synchronized static void registerParsers() {
+		if (!headerMap.isEmpty()) {
+			return;
+		}
+		
+		registerParser(ElevStatusNotify.class, ElevStatusNotify::parse);
+		registerParser(FloorRequest.class, FloorRequest::parse);
+		registerParser(MessageAck.class, MessageAck::parse);
+		registerParser(NoMoreEventsNotify.class, NoMoreEventsNotify::parse);
+		registerParser(RegisterFloorRequest.class, RegisterFloorRequest::parse);
+		registerParser(StopRequest.class, StopRequest::parse);
+		registerParser(StopResponse.class, StopResponse::parse);
+		registerParser(UnregisterElevatorRequest.class, UnregisterElevatorRequest::parse);
+		registerParser(RegisterElevatorRequest.class, RegisterElevatorRequest::parse);
+		
+		Log.log("Registered Message Headers", Log.Level.INFO);
+	}
+	
+	
+	protected synchronized static char getHeader(Class<? extends Message> clazz) {
+		if (!headerMap.containsKey(clazz)) {
+			return 0;
+		}
+		return headerMap.get(clazz);
+	}
+
+	
+	private interface MessageParser {
+		public Message parse(byte[] bytes, int srcPort);
 	}
 
 }

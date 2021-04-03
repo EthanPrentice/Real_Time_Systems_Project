@@ -13,6 +13,7 @@ import src.Floor;
 import src.Scheduler;
 import src.adt.*;
 import util.Config;
+import util.Log;
 
 /**
  * Tests all possible paths for the Elevator state machine using varying test data. Implements integration testing
@@ -33,6 +34,8 @@ class ElevatorTest {
 	
 	@BeforeEach
 	void setup() {
+		Log.setLevel(Log.Level.VERBOSE);
+		
 		Config.USE_ZERO_FLOOR_TIME = true;
 		scheduler = new Scheduler();
 		elevator = new Elevator();

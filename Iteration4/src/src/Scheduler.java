@@ -7,6 +7,7 @@ import java.util.Iterator;
 
 import src.adt.*;
 import src.adt.message.FloorRequest;
+import src.adt.message.Message;
 import src.adt.message.StopRequest;
 import util.Log;
 
@@ -60,7 +61,7 @@ public class Scheduler implements Runnable {
 	 * @param floor
 	 * @param elevator
 	 */
-	public Scheduler() {		
+	public Scheduler() {
 		msgHandler = new SchedulerMessageHandler(this);
 		msgHandlerThread = new Thread(msgHandler, "Scheduler MsgHandler");
 		msgHandlerThread.start();
@@ -472,9 +473,9 @@ public class Scheduler implements Runnable {
 	 * Main Thread, creates Scheduler and starts Floor and Elevator Threads
 	 * @param args
 	 */
-	public static void main(String[] args) {
+	public static void main(String[] args) {		
 		// set to INFO for demo.  Use verbose / debug for testing
-		Log.setLevel(Log.Level.INFO);
+		Log.setLevel(Log.Level.VERBOSE);
 		Thread.currentThread().setName("Scheduler");
 		
 		Scheduler scheduler = new Scheduler();
