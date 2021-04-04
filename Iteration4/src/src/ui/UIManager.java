@@ -1,4 +1,4 @@
-package src;
+package src.ui;
 
 import java.awt.*;
 import java.util.HashMap;
@@ -7,7 +7,6 @@ import javax.swing.*;
 import net.miginfocom.swing.MigLayout;
 import src.adt.ElevatorState;
 import src.adt.ElevatorStatus;
-import src.ui.ElevatorPanel;
 import util.Config;
 
 

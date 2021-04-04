@@ -9,6 +9,7 @@ import src.adt.*;
 import src.adt.message.FloorRequest;
 import src.adt.message.Message;
 import src.adt.message.StopRequest;
+import src.ui.UIManager;
 import util.Log;
 
 /**
