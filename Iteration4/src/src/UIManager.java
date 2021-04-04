@@ -89,29 +89,6 @@ public class UIManager {
 	}
 
 	
-//	private void updateButtonDoorStuckError() {
-//		 for (int i = 0; i < buttons.length; i++) {
-//         	int floor = buttons.length - i;
-//         	
-//         	JButton button = buttons[i];
-//         	if (floor /*== TODO*/) {    //currentFooor
-//         		button.setBackground(Color.YELLOW);
-//         	}
-//         }
-//	}
-//	
-//	private void updateButtonFatalError() {
-//		 for (int i = 0; i < buttons.length; i++) {
-//         	int floor = buttons.length - i;
-//         	JButton button = buttons[i];
-//         	if (floor /*== TODO*/ ) {   //currentFloor
-//         		button.setBackground(Color.RED);
-//         		System.out.println("Setting to REd");
-//         	}
-//         }
-//	}
-
-	
 	public JFrame getRootFrame() {
 		JFrame frame = new JFrame();
 		frame.setBounds(100, 100, COLUMN_WIDTH, 720);
