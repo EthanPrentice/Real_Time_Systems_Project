@@ -22,9 +22,14 @@ public class MeasureWriter {
 	private FileOutputStream oStream;
 	private PrintWriter pw;
 	
+	
 	public MeasureWriter() {
+		this(new File(Config.MEASURE_PATH, getFilename()));
+		writeHeaders();
+	}
+	
+	public MeasureWriter(File file) {
 		try {
-			File file = new File(Config.MEASURE_PATH, getFilename());
 			if (!file.exists()) {
 				file.createNewFile();
 			}
@@ -32,15 +37,13 @@ public class MeasureWriter {
 				throw new IOException("File already exists!! (" + file.getAbsolutePath() + ")");
 			}
 			
-			oStream = new FileOutputStream(file);
+			oStream = new FileOutputStream(file, true);
 			pw = new PrintWriter(oStream);
 			
 		} catch (IOException e) {
 			e.printStackTrace();
 			System.exit(-1);
 		}
-		
-		writeHeaders();
 	}
 	
 	
@@ -55,8 +58,14 @@ public class MeasureWriter {
 	}
 	
 	
-	public void flush() {
-		pw.flush();
+	public void writeTotalTime(long timeMs) {
+		StringJoiner sj = new StringJoiner(",");
+		for (int i = 0; i < 4; ++i) {
+			sj.add("");
+		}
+		sj.add(Long.toString(timeMs));
+		
+		pw.println(sj.toString());
 	}
 	
 	
@@ -71,11 +80,12 @@ public class MeasureWriter {
 		sj.add("Src Floor");
 		sj.add("Dst Floor");
 		sj.add("Completion Time (ms)");
+		sj.add("Total Completion Time (ms)");
 		
 		pw.println(sj.toString());
 	}
 	
-	private String getFilename() {
+	private static String getFilename() {
 		return sdf.format(new Date()) + "_measure.csv";
 	}
 }

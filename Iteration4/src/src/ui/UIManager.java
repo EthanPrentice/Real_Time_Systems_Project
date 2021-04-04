@@ -11,7 +11,7 @@ import src.adt.message.FloorRequest;
 
 public class UIManager {
 	
-	private final static int COLUMN_WIDTH = 250;
+	private final static int COLUMN_WIDTH = 300;
 	
 
 	private HashMap<Character, ElevatorPanel> elevatorIdMap = new HashMap<>();

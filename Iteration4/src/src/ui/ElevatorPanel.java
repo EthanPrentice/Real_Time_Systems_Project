@@ -3,6 +3,8 @@ package src.ui;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -22,6 +24,8 @@ public class ElevatorPanel extends JPanel {
 	
 	/** Auto-generated */
 	private static final long serialVersionUID = 4130185779601142142L;
+	
+	private static final SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
 	
 	private static final int FLOORS_PER_COLUMN = 11;
 	
@@ -91,7 +95,7 @@ public class ElevatorPanel extends JPanel {
 	
 	
 	public void addCurrentRequest(FloorRequest req) {
-		JLabel label = new JLabel(req.toString());
+		JLabel label = new JLabel(reqToString(req));		
 		currReqLabels.put(req, label);
 		
 		currReqsPane.add(label);
@@ -100,8 +104,10 @@ public class ElevatorPanel extends JPanel {
 	
 	
 	public void addCompletedRequest(FloorRequest req) {
-		JLabel label = currReqLabels.get(req);
+		JLabel label = currReqLabels.get(req);		
 		currReqLabels.remove(req);
+		
+		label.setText(reqToString(req));
 		
 		currReqsPane.remove(label);
 		currReqsPane.repaint();
@@ -141,6 +147,13 @@ public class ElevatorPanel extends JPanel {
 	
 	public JButton[] getButtons() {
 		return buttons;
+	}
+	
+	
+	private static String reqToString(FloorRequest req) {
+		String format = "[%s] %s";
+		Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+        return String.format(format, sdf.format(timestamp), req.getPrettyString());
 	}
 	
 }

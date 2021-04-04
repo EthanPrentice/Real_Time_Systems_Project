@@ -12,7 +12,7 @@ import java.text.SimpleDateFormat;
  */
 public class Log {
 	
-	private static Level logLevel = Level.VERBOSE;
+	private static Level logLevel = Level.INFO;
 	
 	
 	private static final SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
@@ -39,7 +39,8 @@ public class Log {
 	public enum Level {
 		VERBOSE(0),
 		DEBUG(1),
-		INFO(2);
+		INFO(2),
+		NONE(3);
 		
 		public final int value;
 		

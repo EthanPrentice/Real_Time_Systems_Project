@@ -489,7 +489,7 @@ public class Scheduler implements Runnable {
 	 */
 	public static void main(String[] args) {		
 		// set to INFO for demo.  Use verbose / debug for testing
-		Log.setLevel(Log.Level.VERBOSE);
+		// Log.setLevel(Log.Level.INFO);
 		Thread.currentThread().setName("Scheduler");
 		
 		Scheduler scheduler = new Scheduler();

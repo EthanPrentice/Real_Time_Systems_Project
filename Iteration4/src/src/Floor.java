@@ -33,6 +33,8 @@ public class Floor implements Runnable {
 	// path to read events from
 	private String filePath;
 	
+	private long startMs = 0;
+	
 	private PriorityQueue<FloorRequest> requestQueue;
 	private Comparator<FloorRequest> requestTimeComparator = new Comparator<FloorRequest>() {
         @Override
@@ -56,6 +58,14 @@ public class Floor implements Runnable {
 		}
 	}
 	
+	public Floor(MeasureWriter measureWriter) {
+		requestQueue = new PriorityQueue<FloorRequest>(requestTimeComparator);
+		
+		if (Config.EXPORT_MEASUREMENTS) {
+			this.measureWriter = measureWriter;
+		}
+	}
+	
 	
 	public void init() {
 		msgHandler = new FloorMessageHandler(this);
@@ -67,6 +77,8 @@ public class Floor implements Runnable {
 	@Override
 	public void run() {
 		init();
+		
+		startMs = System.currentTimeMillis();
 		
 		// hard code file location for now
 		if (filePath == null) {
@@ -88,6 +100,10 @@ public class Floor implements Runnable {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		long completedInMs = System.currentTimeMillis() - startMs;
+		Log.log("Requests were completed in " + completedInMs + "ms", Log.Level.INFO);
+		
+		measureWriter.writeTotalTime(completedInMs);
 		
 		if (Config.EXPORT_MEASUREMENTS) {
 			measureWriter.close();
@@ -271,7 +287,7 @@ public class Floor implements Runnable {
 	
 	
 	public static void main(String[] args) {
-		Log.setLevel(Log.Level.INFO);
+		// Log.setLevel(Log.Level.INFO);
 		Thread.currentThread().setName("Floor");
 		
 		Floor floor = new Floor();

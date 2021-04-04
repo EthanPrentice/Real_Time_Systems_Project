@@ -4,6 +4,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 
 import java.util.*;
@@ -57,6 +58,20 @@ public class FloorRequest extends Message {
 		sj.add(Byte.toString(errorType.stateByte));
 		
 		return sj.toString();
+	}
+	
+	
+	public String getPrettyString() {
+		String format = "%s %2d %4s %2d %s";
+		
+		return String.format(
+			format,
+			reqTime.format(DateTimeFormatter.ofPattern("HH:mm:ss")),
+			srcFloor,
+			btnDirection.name(),
+			dstFloor,
+			errorType.name()
+		);
 	}
 	
 	
