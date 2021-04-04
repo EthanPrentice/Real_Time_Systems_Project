@@ -1,30 +1,64 @@
 package src.ui;
 
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.HashMap;
 import javax.swing.*;
 
-import net.miginfocom.swing.MigLayout;
 import src.adt.ElevatorState;
 import src.adt.ElevatorStatus;
-import util.Config;
-
+import src.adt.message.FloorRequest;
 
 public class UIManager {
 	
-	private final static int COLUMN_WIDTH = 200;
+	private final static int COLUMN_WIDTH = 250;
 	
 
 	private HashMap<Character, ElevatorPanel> elevatorIdMap = new HashMap<>();
 	private HashMap<Character, ElevatorStatus> elevatorStatuses = new HashMap<>();
 
 	private JFrame frame;
+	private JPanel emptyPanel;
 
 	public UIManager() {
 		frame = getRootFrame();		
 		frame.setVisible(true);
+		
+		// Add message until elevators are added
+		JLabel emptyLabel = new JLabel("No Elevators Registered", JLabel.CENTER);		
+		emptyPanel = new JPanel(new BorderLayout());
+		emptyPanel.setBounds(frame.getBounds());
+		emptyPanel.add(emptyLabel, BorderLayout.CENTER);
+		frame.add(emptyPanel);
 	}
 
+	
+	public void registerElevator(char elevatorId, ElevatorStatus status) {		
+		ElevatorPanel newPanel = new ElevatorPanel(elevatorId, COLUMN_WIDTH);
+		elevatorIdMap.put(elevatorId, newPanel);
+		updateElevatorStatus(elevatorId, status);
+		
+		
+		
+		if (elevatorIdMap.size() != 1) {
+			Rectangle currBounds = frame.getBounds();
+			currBounds.width += 500; // add width of new column
+			currBounds.height = Math.max(currBounds.height, newPanel.getHeight());
+			frame.setPreferredSize(new Dimension(currBounds.width, currBounds.height));
+		}
+		else {
+			frame.remove(emptyPanel);
+		}
+		
+		frame.add(newPanel);
+		
+		frame.pack();
+		
+		frame.invalidate();
+		frame.validate();
+		frame.repaint();
+	}
+	
 	
 	public void updateElevatorStatus(char elevatorId, ElevatorStatus status) {
 		elevatorStatuses.put(elevatorId, status);
@@ -43,10 +77,9 @@ public class UIManager {
 		}
 		
 		for (int i = 0; i < buttons.length; i++) {
-			int floor = buttons.length - i;
 			JButton button = buttons[i];
 			
-			if (status.getFloor() + 1 == floor) {     //current floor
+			if (status.getFloor() - 1 == i) {     //current floor
 				button.setBackground(floorColor);
 			}
 			else {
@@ -56,43 +89,39 @@ public class UIManager {
 		
 		panel.setState(status.getState());
 	}
-
 	
-	public void registerElevator(char elevatorId, ElevatorStatus status) {		
-		ElevatorPanel newPanel = new ElevatorPanel(COLUMN_WIDTH);
-		elevatorIdMap.put(elevatorId, newPanel);
-		updateElevatorStatus(elevatorId, status);
-		
-		frame.getContentPane().add(newPanel);
-		
-		if (elevatorIdMap.size() != 1) {
-			Rectangle currBounds = frame.getBounds();
-			currBounds.width += 500; // add width of new column
-			frame.setBounds(currBounds);
-		}
-		
-		frame.invalidate();
-		frame.validate();
-		frame.repaint();
+	
+	public void addFloorRequest(char elevatorId, FloorRequest req) {
+		ElevatorPanel panel = elevatorIdMap.get(elevatorId);
+		panel.addCurrentRequest(req);
 	}
 	
 	
-	public void unregisterElevator(char elevatorId) {
+	public void completeFloorRequest(char elevatorId, FloorRequest req) {
+		ElevatorPanel panel = elevatorIdMap.get(elevatorId);
+		panel.addCompletedRequest(req);
+	}
+	
+	
+	public void unregisterElevator(char elevatorId, ArrayList<FloorRequest> recoveredReqs) {
 		ElevatorPanel panel = elevatorIdMap.get(elevatorId);
 		ElevatorStatus status = elevatorStatuses.get(elevatorId);
 		
-		int buttonIndex = (Config.NUM_FLOORS - 1) - status.getFloor();
-		panel.getButtons()[buttonIndex].setBackground(Color.RED);
+		panel.getButtons()[status.getFloor() - 1].setBackground(Color.RED);
 		panel.setState(ElevatorState.STOPPED);
 		panel.setStatusMessage("Fatal Error");
+		
+		panel.removeFromQueued(recoveredReqs);
 	}
 
 	
 	public JFrame getRootFrame() {
 		JFrame frame = new JFrame();
-		frame.setBounds(100, 100, COLUMN_WIDTH, 720);
+		frame.setBounds(0, 0, COLUMN_WIDTH, 720);
 		frame.getContentPane().setLayout(new BoxLayout(frame.getContentPane(), BoxLayout.X_AXIS));
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.setResizable(false);
+		frame.setTitle("Elevator System Display");
 		
 		return frame;
 	}

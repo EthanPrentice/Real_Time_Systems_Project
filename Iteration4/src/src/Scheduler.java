@@ -267,6 +267,7 @@ public class Scheduler implements Runnable {
 			
 			Log.log("Sent " + req.toString() + " to Elevator with id=" + (int) elevatorId, Log.Level.INFO);
 			msgHandler.send(req, elevators.get(elevatorId));
+			uiManager.addFloorRequest(elevatorId, req);
 			
 			iter.remove();
 			sentAnEvent = true;
@@ -395,7 +396,7 @@ public class Scheduler implements Runnable {
 		downElevators.remove(elevatorId);
 		elevatorStatuses.remove(elevatorId);
 		
-		uiManager.unregisterElevator(elevatorId);
+		uiManager.unregisterElevator(elevatorId, recoverableRequests);
 		
 		Log.log("Elevator with ID=" + (int) elevatorId + " has been unregistered on port=" + port, Log.Level.INFO);
 		
@@ -436,6 +437,12 @@ public class Scheduler implements Runnable {
 			notifyAll();
 		}
 	}
+	
+	
+	public void onCompletedRequest(char elevatorId, FloorRequest req) {
+		uiManager.completeFloorRequest(elevatorId, req);
+	}
+	
 	
 	/**
 	 * @return whether the MessageHandler has been initialized
@@ -482,7 +489,7 @@ public class Scheduler implements Runnable {
 	 */
 	public static void main(String[] args) {		
 		// set to INFO for demo.  Use verbose / debug for testing
-		Log.setLevel(Log.Level.INFO);
+		Log.setLevel(Log.Level.VERBOSE);
 		Thread.currentThread().setName("Scheduler");
 		
 		Scheduler scheduler = new Scheduler();

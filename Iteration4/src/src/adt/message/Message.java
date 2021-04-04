@@ -18,7 +18,7 @@ public abstract class Message {
 	private static HashMap<Character, MessageParser> parserMap = new HashMap<>();
 	private static HashMap<Class<? extends Message>, Character> headerMap = new HashMap<>();
 	
-	public static final int MAX_BYTES = 100;
+	public static final int MAX_BYTES = 1024;
 	
 	
 	// local port that the message is sent from
@@ -83,7 +83,7 @@ public abstract class Message {
 		char msgHeader = buff.getChar();
 		
 		MessageParser parser;
-		parser = parserMap.get(msgHeader);
+		parser = parserMap.get(msgHeader);		
 		if (parser != null) {
 			try {
 				return parser.parse(bytes, srcPort);

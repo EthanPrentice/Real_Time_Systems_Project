@@ -31,8 +31,8 @@ public class UnregisterElevatorRequest extends Message {
 	
 	@Override
 	public String toString() {
-		String format = "UnregisterElevatorRequest(elevatorId=%d, port=%d)";
-		return String.format(format, (int) elevatorId, srcPort);
+		String format = "UnregisterElevatorRequest(elevatorId=%d, port=%d, recoverable=%s)";
+		return String.format(format, (int) elevatorId, srcPort, recoverableReqs.toString());
 	}
 	
 	public char getElevatorId() {
@@ -59,14 +59,12 @@ public class UnregisterElevatorRequest extends Message {
 					dos.write((byte) 0);
 				}
 			}
-			
-			return inStream.toByteArray();
-			
+				
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 		
-		return null;
+		return inStream.toByteArray();
 	}
 	
 	
@@ -77,14 +75,16 @@ public class UnregisterElevatorRequest extends Message {
 	 * @return A parsed UnregisterElevatorRequest from [bytes].
 	 */
 	public static UnregisterElevatorRequest parse(byte[] bytes, int srcPort) {
-		ByteBuffer buff = ByteBuffer.wrap(bytes, 2, bytes.length - 2);
+		ByteBuffer buff = ByteBuffer.wrap(bytes);
+		buff.getChar(); // header
+		
 		char elevatorId = buff.getChar();
 
 		ArrayList<FloorRequest> reqs = new ArrayList<>();
 		while (buff.hasRemaining()) {
 			ByteBuffer tmpBuff = buff.slice();
 			
-			if (tmpBuff.getChar() != 0x0001) { // header
+			if (tmpBuff.getChar() != Message.getHeader(FloorRequest.class)) { // header
 				break;
 			}
 			

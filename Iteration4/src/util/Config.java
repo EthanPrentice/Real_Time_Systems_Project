@@ -7,11 +7,16 @@ package util;
  * Configures options for the program
  */
 public class Config {
-
 	public static boolean USE_ZERO_FLOOR_TIME = false;
-	public final static int NUM_FLOORS = 10;
+	public final static int NUM_FLOORS = 22;
 	
-	public static boolean EXPORT_MEASUREMENTS = true;
+	public static boolean EXPORT_MEASUREMENTS = false;
 	public static String MEASURE_PATH = "./out/";
 	
+	
+	public final static long FLOOR_TIME_MS = 4_750L;
+	public final static long LOAD_TIME_MS = 9_350L;
+	
+	public final static long FLOOR_ERR_TIMER_MS = (long) (FLOOR_TIME_MS * 1.2);  // shouldn't have that much variance
+	public final static long DOOR_ERR_TIMER_MS = (long) (LOAD_TIME_MS * 1.4);    // more variance, higher modifier
 }

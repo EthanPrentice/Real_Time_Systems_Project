@@ -85,8 +85,10 @@ public class SchedulerMessageHandler extends MessageHandler {
 				}
 				// sent from the Elevators to notify that a FloorRequest has been completed
 				else if (received instanceof CompletedFloorRequest) {
+					CompletedFloorRequest req = (CompletedFloorRequest) received;
 					// forward it to the Elevator
 					send(received, scheduler.getFloorPort());
+					scheduler.onCompletedRequest(req.getElevatorId(), req.getFloorRequest());
 				}
 				// sent from the Floor to notify the Scheduler of an event that must be scheduled to an Elevator
 				else if (received instanceof FloorRequest) {

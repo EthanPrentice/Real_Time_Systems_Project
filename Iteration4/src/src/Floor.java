@@ -70,7 +70,7 @@ public class Floor implements Runnable {
 		
 		// hard code file location for now
 		if (filePath == null) {
-			File file = new File("res/test_data_noerror.txt");
+			File file = new File("res/test_data_22_floors.txt");
 			readFromFile(file);
 		}
 		else {
@@ -89,7 +89,9 @@ public class Floor implements Runnable {
 			e.printStackTrace();
 		}
 		
-		measureWriter.close();
+		if (Config.EXPORT_MEASUREMENTS) {
+			measureWriter.close();
+		}
 		
 		Log.log("EXITING", Log.Level.DEBUG);
 	}
