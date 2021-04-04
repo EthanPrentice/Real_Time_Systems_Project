@@ -9,7 +9,8 @@ public enum ElevatorState {
 	MOVING_DOWN(1),
 	STOPPED(2),
 	DOORS_OPEN(3),
-	DOORS_CLOSED(4);
+	DOORS_CLOSED(4),
+	DOORS_JAMMED(5);
 	
 	public final byte stateByte;
 	

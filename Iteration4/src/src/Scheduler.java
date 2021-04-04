@@ -395,6 +395,8 @@ public class Scheduler implements Runnable {
 		downElevators.remove(elevatorId);
 		elevatorStatuses.remove(elevatorId);
 		
+		uiManager.unregisterElevator(elevatorId);
+		
 		Log.log("Elevator with ID=" + (int) elevatorId + " has been unregistered on port=" + port, Log.Level.INFO);
 		
 		// recover the recoverable requests (ie. elevator has not picked people up from the floors yet)
@@ -480,7 +482,7 @@ public class Scheduler implements Runnable {
 	 */
 	public static void main(String[] args) {		
 		// set to INFO for demo.  Use verbose / debug for testing
-		Log.setLevel(Log.Level.VERBOSE);
+		Log.setLevel(Log.Level.INFO);
 		Thread.currentThread().setName("Scheduler");
 		
 		Scheduler scheduler = new Scheduler();

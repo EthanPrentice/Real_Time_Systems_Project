@@ -11,8 +11,8 @@ import util.Config;
  */
 public class ElevatorErrorHandler implements Runnable {
 	
-	private static final long DOOR_TIMER = 20_000L;
-	private static final long FLOOR_TIMER = 15_000L;
+	private static final long DOOR_TIMER = 12_000L;
+	private static final long FLOOR_TIMER = 8_000L;
 	
 	private long currTimerLength = 0;
 	private long timerStartedMs = 0;
