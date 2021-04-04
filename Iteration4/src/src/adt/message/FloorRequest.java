@@ -120,6 +120,11 @@ public class FloorRequest extends Message {
 		}
 	}
 	
+	@Override
+	public int hashCode() {
+		return reqTime.hashCode() + (srcFloor << 3) + (dstFloor << 2) + btnDirection.name().hashCode();
+	}
+	
 	
 	/**
 	 * @param s : an input string of the format: "{hh:mm:ss.mmm} {int} {up|down} {int}".

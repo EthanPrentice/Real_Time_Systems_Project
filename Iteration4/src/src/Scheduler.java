@@ -8,6 +8,7 @@ import java.util.Iterator;
 import src.adt.*;
 import src.adt.message.FloorRequest;
 import src.adt.message.StopRequest;
+import src.ui.UIManager;
 import util.Log;
 
 /**
@@ -54,6 +55,8 @@ public class Scheduler implements Runnable {
 	// true if scheduler thread should stop when it is safe to do so
 	private boolean stopRequested = false;
 	
+	private UIManager uiManager;
+	
 	
 	/**
 	 * Constructor, saves references to the floor and elevator
@@ -64,6 +67,7 @@ public class Scheduler implements Runnable {
 		msgHandler = new SchedulerMessageHandler(this);
 		msgHandlerThread = new Thread(msgHandler, "Scheduler MsgHandler");
 		msgHandlerThread.start();
+		uiManager = new UIManager();
 	}
 	
 	
@@ -263,6 +267,7 @@ public class Scheduler implements Runnable {
 			
 			Log.log("Sent " + req.toString() + " to Elevator with id=" + (int) elevatorId, Log.Level.INFO);
 			msgHandler.send(req, elevators.get(elevatorId));
+			uiManager.addFloorRequest(elevatorId, req);
 			
 			iter.remove();
 			sentAnEvent = true;
@@ -369,6 +374,7 @@ public class Scheduler implements Runnable {
 	 * @param port
 	 */
 	public synchronized void registerElevator(char elevatorId, ElevatorStatus status, int port) {
+		uiManager.registerElevator(elevatorId, status);
 		elevators.put(elevatorId, port);
 		stoppedElevators.add(elevatorId);
 		elevatorStatuses.put(elevatorId, status);
@@ -389,6 +395,8 @@ public class Scheduler implements Runnable {
 		upElevators.remove(elevatorId);
 		downElevators.remove(elevatorId);
 		elevatorStatuses.remove(elevatorId);
+		
+		uiManager.unregisterElevator(elevatorId, recoverableRequests);
 		
 		Log.log("Elevator with ID=" + (int) elevatorId + " has been unregistered on port=" + port, Log.Level.INFO);
 		
@@ -418,6 +426,7 @@ public class Scheduler implements Runnable {
 	 * @param status
 	 */
 	public synchronized void updateElevatorStatus(char elevatorId, ElevatorStatus status) {
+		uiManager.updateElevatorStatus(elevatorId, status);
 		elevatorStatuses.put(elevatorId, status);
 		Log.log("Elevator with ID=" + (int) elevatorId + " has updated status=" + status.toString(), Log.Level.VERBOSE);
 		if (status.getState() == ElevatorState.STOPPED) {
@@ -428,6 +437,12 @@ public class Scheduler implements Runnable {
 			notifyAll();
 		}
 	}
+	
+	
+	public void onCompletedRequest(char elevatorId, FloorRequest req) {
+		uiManager.completeFloorRequest(elevatorId, req);
+	}
+	
 	
 	/**
 	 * @return whether the MessageHandler has been initialized

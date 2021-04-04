@@ -1,6 +1,7 @@
 package src;
 
 import src.adt.*;
+import src.adt.message.CompletedFloorRequest;
 import src.adt.message.ElevStatusNotify;
 import src.adt.message.FloorRequest;
 import util.Config;
@@ -60,9 +61,9 @@ public class Elevator implements Runnable {
 	private boolean stopRequested = false;
 
 	// keep track of the floor the elevator is going to, and the floor it is currently on
-	// 0 is the ground floor and all elevators are initialized to this floor
-	private int targetFloor = 0;
-	private int currFloor = 0;
+	// 1 is the ground floor and all elevators are initialized to this floor
+	private int targetFloor = 1;
+	private int currFloor = 1;
 	
 
 	// testing purposes
@@ -70,6 +71,9 @@ public class Elevator implements Runnable {
 	
 	// floor to array of FloorRequests with key as their source floor
 	private HashMap<Integer, ArrayList<FloorRequest>> recoverableRequests = new HashMap<>();
+	
+	// floor to array of FloorRequests with key as their dest floor
+	private HashMap<Integer, ArrayList<FloorRequest>> inProgressRequests = new HashMap<>();
 	
 	
 	/*
@@ -82,6 +86,7 @@ public class Elevator implements Runnable {
 		
 		for (int i = 0; i < Config.NUM_FLOORS; ++i) {
 			recoverableRequests.put(i + 1, new ArrayList<FloorRequest>());
+			inProgressRequests.put(i + 1, new ArrayList<FloorRequest>());
 		}
 		
 		msgHandler = new ElevatorMessageHandler(this);
@@ -270,8 +275,6 @@ public class Elevator implements Runnable {
 	private void onDoorsOpen() {
 		Log.log("Elevator doors opened", Log.Level.INFO);
 		
-		recoverableRequests.get(currFloor).clear();
-		
 		Iterator<ErrorType> iter = errors.get(currFloor - 1).iterator();
 		ErrorType error;
 		while (iter.hasNext()) {
@@ -296,7 +299,7 @@ public class Elevator implements Runnable {
 		try {
 			// NOTE: This uses actual load time from data from iteration 0
 			if (!Config.USE_ZERO_FLOOR_TIME) {
-				Thread.sleep(9350L);
+				Thread.sleep(Config.LOAD_TIME_MS);
 			}
 			else {
 				Thread.sleep(50L);
@@ -305,9 +308,14 @@ public class Elevator implements Runnable {
 		} catch (InterruptedException e) {
 			Log.log(e.getMessage());
 		}
-
-		changeState(ElevatorState.DOORS_CLOSED);
+		
+		// recoverable requests -> in progress
+		for (FloorRequest req : recoverableRequests.get(currFloor)) {
+			inProgressRequests.get(req.getDestFloor()).add(req);
+		}
 		recoverableRequests.get(currFloor).clear();
+		
+		changeState(ElevatorState.DOORS_CLOSED);
 	}
 
 
@@ -344,13 +352,11 @@ public class Elevator implements Runnable {
 					return false;
 				}
 			}
-			
-			notifyStatusChanged();
 
 			try {
 				// NOTE: This uses actual time between floors from data from iteration 0
 				if (!Config.USE_ZERO_FLOOR_TIME) {
-					Thread.sleep(4750L);
+					Thread.sleep(Config.FLOOR_TIME_MS);
 				}
 				else {
 					Thread.sleep(50L);
@@ -360,6 +366,8 @@ public class Elevator implements Runnable {
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
+			
+			notifyStatusChanged();
 		}
 		
 		return true;
@@ -388,7 +396,6 @@ public class Elevator implements Runnable {
 
 		case DOORS_OPEN:
 			notifyStatusChanged();
-			
 			onDoorsOpen();
 			break;
 
@@ -396,9 +403,20 @@ public class Elevator implements Runnable {
 			notifyStatusChanged();
 			
 			Log.log("Elevator doors have closed", Log.Level.INFO);
+			
+			// in progress requests -> finished requests
+			for (FloorRequest req : inProgressRequests.get(currFloor)) {
+				msgHandler.send(new CompletedFloorRequest(elevatorId, req));
+			}
+			inProgressRequests.get(currFloor).clear();
+			
 			if (floorQueue.isEmpty()) {
 				changeState(ElevatorState.STOPPED);
 			}
+			break;
+			
+		case DOORS_JAMMED:
+			notifyStatusChanged();
 			break;
 
 		case STOPPED:
@@ -419,6 +437,7 @@ public class Elevator implements Runnable {
 	 *   elevator recovering with a time delay
 	 */
 	public void handleDoorError() {
+		changeState(ElevatorState.DOORS_JAMMED);
 		Log.log("ERROR: Doors could not open / close.  Recovering...", Log.Level.INFO);
 		
 		try {
@@ -525,13 +544,16 @@ public class Elevator implements Runnable {
 			reqs.addAll(recoverableRequests.get(key));
 		}
 		
+		System.out.println("Recoverable=" + recoverableRequests.toString());
+		System.out.println("InProgress =" + inProgressRequests.toString());
+		
 		return reqs;
 	}
 	
 	
 	static public void main(String[] args) {
 		// set to INFO for demo.  Use verbose / debug for testing
-		Log.setLevel(Log.Level.VERBOSE);
+		Log.setLevel(Log.Level.INFO);
 		
 		Elevator e = new Elevator();
 		e.run();

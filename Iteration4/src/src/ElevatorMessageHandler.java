@@ -114,6 +114,7 @@ public class ElevatorMessageHandler extends MessageHandler {
 			}
 			else {
 				Log.log("Failed to register with the Scheduler", Log.Level.INFO);
+				System.exit(-1);
 			}
 		}
 	}
@@ -126,6 +127,7 @@ public class ElevatorMessageHandler extends MessageHandler {
 		// Register with the Scheduler so it knows the port of the elevator with this ID
 		UnregisterElevatorRequest req = new UnregisterElevatorRequest((char) getPort(), elevator.getRecoverableRequests(), getPort());
 		send(req);
+		Log.log(req.toString(), Log.Level.INFO);
 		
 		// wait for reply so we know we are unregistered
 		if (waitForAck) {

@@ -63,13 +63,11 @@ public class ElevStatusNotify extends Message {
 				dos.writeInt(i);
 			}
 			
-			return inStream.toByteArray();
-			
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 		
-		return null;
+		return inStream.toByteArray();
 	}	
 	
 	/**

@@ -11,9 +11,6 @@ import util.Config;
  */
 public class ElevatorErrorHandler implements Runnable {
 	
-	private static final long DOOR_TIMER = 20_000L;
-	private static final long FLOOR_TIMER = 15_000L;
-	
 	private long currTimerLength = 0;
 	private long timerStartedMs = 0;
 	
@@ -92,14 +89,14 @@ public class ElevatorErrorHandler implements Runnable {
 		case DOORS_OPEN:
 		case DOORS_CLOSED:
 			// use shorter timer if config flag is set for zero time
-			currTimerLength = Config.USE_ZERO_FLOOR_TIME ? 2000L : DOOR_TIMER;
+			currTimerLength = Config.USE_ZERO_FLOOR_TIME ? 2000L : Config.DOOR_ERR_TIMER_MS;
 			timerStartedMs = System.currentTimeMillis();
 			break;
 			
 		case MOVING_UP:
 		case MOVING_DOWN:
 			// use shorter timer if config flag is set for zero time
-			currTimerLength = Config.USE_ZERO_FLOOR_TIME ? 2000L : FLOOR_TIMER;
+			currTimerLength = Config.USE_ZERO_FLOOR_TIME ? 2000L : Config.FLOOR_ERR_TIMER_MS;
 			timerStartedMs = System.currentTimeMillis();
 			break;
 			

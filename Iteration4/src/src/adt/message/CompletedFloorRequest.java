@@ -5,9 +5,6 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-import src.adt.ElevatorState;
-import src.adt.ElevatorStatus;
-
 /**
  * Written for SYSC3303 - Group 6 - Iteration 3 @ Carleton University
  * @author Ethan Prentice (101070194)
@@ -16,30 +13,30 @@ import src.adt.ElevatorStatus;
  * This allows the Scheduler to know which ports the Elevators are running on and where
  *   they have started
  */
-public class RegisterElevatorRequest extends Message {
+public class CompletedFloorRequest extends Message {
 	
 	private char elevatorId;
-	private ElevatorStatus status;
+	private FloorRequest req;
 	
-	public RegisterElevatorRequest(char elevatorId, ElevatorStatus status) {
-		this(elevatorId, status, 0);
+	public CompletedFloorRequest(char elevatorId, FloorRequest req) {
+		this(elevatorId, req, 0);
 	}
 	
-	public RegisterElevatorRequest(char elevatorId, ElevatorStatus status, int srcPort) {
+	public CompletedFloorRequest(char elevatorId, FloorRequest req, int srcPort) {
 		super(srcPort);
 		this.elevatorId = elevatorId;
-		this.status = status;
+		this.req = req;
 	}
 	
 	
 	@Override
 	public String toString() {
-		String format = "RegisterElevatorRequest(elevatorId=%d, port=%d, status=%s)";
-		return String.format(format, (int) elevatorId, srcPort, status.toString());
+		String format = "CompletedFloorRequest(elevatorId=%d, req=%s)";
+		return String.format(format, (int) elevatorId, req.toString());
 	}
 	
-	public ElevatorStatus getStatus() {
-		return status;
+	public FloorRequest getFloorRequest() {
+		return req;
 	}
 	
 	public char getElevatorId() {
@@ -55,19 +52,13 @@ public class RegisterElevatorRequest extends Message {
 			dos.writeChar(getHeader());
 			dos.writeChar(elevatorId);
 			
-			dos.writeInt(status.getFloor());
-			dos.writeByte(status.getState().stateByte);
-			for (int i : status.getFloorOccupancy()) {
-				dos.writeInt(i);
-			}
-			
-			return inStream.toByteArray();
+			dos.write(req.toBytes());
 			
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 		
-		return null;
+		return inStream.toByteArray();
 	}
 	
 	
@@ -77,23 +68,18 @@ public class RegisterElevatorRequest extends Message {
 	 * 
 	 * @return A parsed RegisterElevatorRequest from [bytes].
 	 */
-	public static RegisterElevatorRequest parse(byte[] bytes, int srcPort) {
+	public static CompletedFloorRequest parse(byte[] bytes, int srcPort) {
 		ByteBuffer buff = ByteBuffer.wrap(bytes);
 		buff.getChar(); // header
 		
 		char elevatorId = buff.getChar();
 		
-		int currFloor = buff.getInt();
-		ElevatorState state = ElevatorState.fromByte(buff.get());
+		byte[] floorReqBytes = new byte[buff.remaining()];
+		buff.get(floorReqBytes);
 		
-		int[] floorOccupancy = new int[buff.remaining() / 4];
-		for (int i = 0; i < floorOccupancy.length; ++i) {
-			floorOccupancy[i] = buff.getInt();
-		}
+		FloorRequest req = FloorRequest.parse(floorReqBytes, 0);
 		
-		ElevatorStatus status = new ElevatorStatus(currFloor, state, floorOccupancy);
-		
-		return new RegisterElevatorRequest(elevatorId, status, srcPort);
+		return new CompletedFloorRequest(elevatorId, req);
 	}
 	
 }
