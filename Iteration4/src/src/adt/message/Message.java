@@ -138,6 +138,7 @@ public abstract class Message {
 		registerParser(StopResponse.class, StopResponse::parse);
 		registerParser(UnregisterElevatorRequest.class, UnregisterElevatorRequest::parse);
 		registerParser(RegisterElevatorRequest.class, RegisterElevatorRequest::parse);
+		registerParser(CompletedFloorRequest.class, CompletedFloorRequest::parse);
 		
 		Log.log("Registered Message Headers", Log.Level.INFO);
 	}

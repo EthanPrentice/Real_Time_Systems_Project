@@ -3,6 +3,7 @@ package src;
 import java.io.IOException;
 
 import src.adt.MessageHandler;
+import src.adt.message.CompletedFloorRequest;
 import src.adt.message.ElevStatusNotify;
 import src.adt.message.FloorRequest;
 import src.adt.message.Message;
@@ -82,6 +83,11 @@ public class SchedulerMessageHandler extends MessageHandler {
 						--activeElevators;
 					}
 				}
+				// sent from the Elevators to notify that a FloorRequest has been completed
+				else if (received instanceof CompletedFloorRequest) {
+					// forward it to the Elevator
+					send(received, scheduler.getFloorPort());
+				}
 				// sent from the Floor to notify the Scheduler of an event that must be scheduled to an Elevator
 				else if (received instanceof FloorRequest) {
 					scheduler.putEventFromFloor((FloorRequest) received);
@@ -101,6 +107,7 @@ public class SchedulerMessageHandler extends MessageHandler {
 				}
 				// unrecognized message, send MessageAck failure
 				else {
+					Log.log("Unexpected message: " + received.toString(), Log.Level.INFO);
 					send(new MessageAck(false), received.getSrcPort());
 					continue;
 				}

@@ -1,6 +1,7 @@
 package src;
 
 import src.adt.*;
+import src.adt.message.CompletedFloorRequest;
 import src.adt.message.ElevStatusNotify;
 import src.adt.message.FloorRequest;
 import util.Config;
@@ -71,6 +72,9 @@ public class Elevator implements Runnable {
 	// floor to array of FloorRequests with key as their source floor
 	private HashMap<Integer, ArrayList<FloorRequest>> recoverableRequests = new HashMap<>();
 	
+	// floor to array of FloorRequests with key as their dest floor
+	private HashMap<Integer, ArrayList<FloorRequest>> inProgressRequests = new HashMap<>();
+	
 	
 	/*
 	 * Initializes variables and runs the MessageHandler in a separate thread
@@ -82,6 +86,7 @@ public class Elevator implements Runnable {
 		
 		for (int i = 0; i < Config.NUM_FLOORS; ++i) {
 			recoverableRequests.put(i + 1, new ArrayList<FloorRequest>());
+			inProgressRequests.put(i + 1, new ArrayList<FloorRequest>());
 		}
 		
 		msgHandler = new ElevatorMessageHandler(this);
@@ -270,6 +275,10 @@ public class Elevator implements Runnable {
 	private void onDoorsOpen() {
 		Log.log("Elevator doors opened", Log.Level.INFO);
 		
+		// recoverable requests -> in progress
+		for (FloorRequest req : recoverableRequests.get(currFloor)) {
+			inProgressRequests.get(req.getDestFloor()).add(req);
+		}
 		recoverableRequests.get(currFloor).clear();
 		
 		Iterator<ErrorType> iter = errors.get(currFloor - 1).iterator();
@@ -396,6 +405,13 @@ public class Elevator implements Runnable {
 			notifyStatusChanged();
 			
 			Log.log("Elevator doors have closed", Log.Level.INFO);
+			
+			// in progress requests -> finished requests
+			for (FloorRequest req : inProgressRequests.get(currFloor)) {
+				msgHandler.send(new CompletedFloorRequest(elevatorId, req));
+			}
+			inProgressRequests.get(currFloor).clear();
+			
 			if (floorQueue.isEmpty()) {
 				changeState(ElevatorState.STOPPED);
 			}

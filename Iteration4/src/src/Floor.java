@@ -12,6 +12,7 @@ import java.time.Duration;
 
 import util.Config;
 import util.Log;
+import util.MeasureWriter;
 
 /**
  * Written for SYSC3303 - Group 6 - Iteration 3 @ Carleton University
@@ -39,9 +40,20 @@ public class Floor implements Runnable {
             return o1.getRequestTime().compareTo(o2.getRequestTime());
         }
     };
+    
+    // request -> time sent
+    // note: only supports unique requests for timings.
+    private HashMap<FloorRequest, Long> sentRequests = new HashMap<>();
+    
+    private MeasureWriter measureWriter = null;
+    
 	
 	public Floor() {
 		requestQueue = new PriorityQueue<FloorRequest>(requestTimeComparator);
+		
+		if (Config.EXPORT_MEASUREMENTS) {
+			measureWriter = new MeasureWriter();
+		}
 	}
 	
 	
@@ -58,7 +70,7 @@ public class Floor implements Runnable {
 		
 		// hard code file location for now
 		if (filePath == null) {
-			File file = new File("res/test_data.txt");
+			File file = new File("res/test_data_noerror.txt");
 			readFromFile(file);
 		}
 		else {
@@ -76,6 +88,8 @@ public class Floor implements Runnable {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		
+		measureWriter.close();
 		
 		Log.log("EXITING", Log.Level.DEBUG);
 	}
@@ -116,14 +130,11 @@ public class Floor implements Runnable {
 				} catch (InterruptedException e) {
 					System.err.print(e.getMessage());
 				}
-				
-				msgHandler.send(currReq);
-				Log.log("Floor: Sent event to Scheduler. Event: " + currReq.toString(), Log.Level.INFO);
 			}
-			else {
-				msgHandler.send(currReq);
-				Log.log("Floor: Sent event to Scheduler. Event: " + currReq.toString(), Log.Level.INFO);
-			}
+			
+			sentRequests.put(currReq, System.currentTimeMillis());
+			msgHandler.send(currReq);
+			Log.log("Floor: Sent event to Scheduler. Event: " + currReq.toString(), Log.Level.INFO);
 			
 			prevReq = currReq;
 		}
@@ -204,6 +215,30 @@ public class Floor implements Runnable {
 		Log.log(String.format(format, (int) elevatorId, status.getFloor()), Log.Level.INFO);
 	}
 	
+	
+	/**
+	 * 
+	 */
+	public void handleCompletedFloorRequest(char elevatorId, FloorRequest completedReq) {	
+		long receivedMs = System.currentTimeMillis();		
+		long sentMs = sentRequests.getOrDefault(completedReq, -1L);
+		
+		if (sentMs == -1) {
+			System.err.println("ERROR: non-unique requests were sent to the Scheduler.  Cannot measure.  (" + completedReq + ")");
+			return;
+		}
+		
+		Log.log("Notified that the request has been completed: " + completedReq.toString() + " by elevator: " + (int) elevatorId, Log.Level.INFO);
+		
+		sentRequests.remove(completedReq);
+		
+		long diff = receivedMs - sentMs;
+		if (Config.EXPORT_MEASUREMENTS) {
+			measureWriter.writeTiming(elevatorId, completedReq, diff);
+		}
+		
+		Log.log("Elevator " + (int) elevatorId + " completed " + completedReq.toString() + " in " + diff + "ms", Log.Level.INFO);
+	}
 	
 	/**
 	 * @return whether the file being read has events left
