@@ -192,8 +192,8 @@ public class Elevator implements Runnable {
 		}
 
 		// Add floors to stop at to the queue
-		floorQueue.add(e.getDestFloor() - 1);
-		floorQueue.add(e.getSourceFloor() - 1);
+		floorQueue.add(e.getDestFloor());
+		floorQueue.add(e.getSourceFloor());
 		
 		// add request to recoverableEvents in-case there is a fault and another elevator must service
 		//    these requests
