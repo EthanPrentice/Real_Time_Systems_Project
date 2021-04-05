@@ -31,7 +31,7 @@ public class ElevatorPanel extends JPanel {
 	
 
 	// status buttons (floors)
-	JButton[] buttons = new JButton[Config.NUM_FLOORS];
+	private JButton[] buttons = new JButton[Config.NUM_FLOORS];
 	
 	// status labels
 	private JLabel stateLabel = new JLabel("State: ");

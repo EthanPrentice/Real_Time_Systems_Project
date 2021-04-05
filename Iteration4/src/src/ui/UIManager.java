@@ -8,6 +8,7 @@ import javax.swing.*;
 import src.adt.ElevatorState;
 import src.adt.ElevatorStatus;
 import src.adt.message.FloorRequest;
+import util.Config;
 
 public class UIManager {
 	
@@ -21,8 +22,8 @@ public class UIManager {
 	private JPanel emptyPanel;
 
 	public UIManager() {
-		frame = getRootFrame();		
-		frame.setVisible(true);
+		frame = getRootFrame();	
+		frame.setVisible(Config.SHOW_UI);
 		
 		// Add message until elevators are added
 		JLabel emptyLabel = new JLabel("No Elevators Registered", JLabel.CENTER);		
@@ -115,7 +116,7 @@ public class UIManager {
 	}
 
 	
-	public JFrame getRootFrame() {
+	private JFrame getRootFrame() {
 		JFrame frame = new JFrame();
 		frame.setBounds(0, 0, COLUMN_WIDTH, 720);
 		frame.getContentPane().setLayout(new BoxLayout(frame.getContentPane(), BoxLayout.X_AXIS));

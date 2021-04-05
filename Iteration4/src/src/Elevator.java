@@ -544,9 +544,6 @@ public class Elevator implements Runnable {
 			reqs.addAll(recoverableRequests.get(key));
 		}
 		
-		System.out.println("Recoverable=" + recoverableRequests.toString());
-		System.out.println("InProgress =" + inProgressRequests.toString());
-		
 		return reqs;
 	}
 	
