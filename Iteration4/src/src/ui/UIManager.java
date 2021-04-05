@@ -43,7 +43,7 @@ public class UIManager {
 		
 		if (elevatorIdMap.size() != 1) {
 			Rectangle currBounds = frame.getBounds();
-			currBounds.width += 500; // add width of new column
+			currBounds.width += COLUMN_WIDTH; // add width of new column
 			currBounds.height = Math.max(currBounds.height, newPanel.getHeight());
 			frame.setPreferredSize(new Dimension(currBounds.width, currBounds.height));
 		}
