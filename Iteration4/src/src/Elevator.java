@@ -192,12 +192,12 @@ public class Elevator implements Runnable {
 		}
 
 		// Add floors to stop at to the queue
-		floorQueue.add(e.getDestFloor());
-		floorQueue.add(e.getSourceFloor());
+		floorQueue.add(e.getDestFloor() - 1);
+		floorQueue.add(e.getSourceFloor() - 1);
 		
 		// add request to recoverableEvents in-case there is a fault and another elevator must service
 		//    these requests
-		recoverableRequests.get(e.getSourceFloor()).add(e);
+		recoverableRequests.get(e.getSourceFloor() - 1).add(e);
 		
 		// Add error types to the floors
 		switch (e.getErrorType()) {
@@ -253,7 +253,7 @@ public class Elevator implements Runnable {
 	 */
 	private int getMaxOccupancy(int minFloor, int maxFloor) {
 		int occupancy = 0;
-		for (int i = minFloor; i <= maxFloor; ++i) {
+		for (int i = minFloor - 1; i < maxFloor; ++i) {
 			occupancy = Integer.max(occupancy, floorOccupancy[i]);
 		}
 		return occupancy;
