@@ -87,9 +87,11 @@ public class FloorMessageHandler extends MessageHandler {
 		}
 		
 		// Notify the Scheduler that the Floor has successfully stopped
-		send(new StopResponse());
-		
-		sock.close();
+		//   if this was not force stopped
+		if (!sock.isClosed()) {
+			send(new StopResponse());
+			sock.close();
+		}
 		
 		Log.log("EXITING", Log.Level.DEBUG);
 	}
@@ -106,6 +108,11 @@ public class FloorMessageHandler extends MessageHandler {
 	
 	private void requestStop() {
 		stopRequested = true;
+	}
+	
+	public void forceStop() {
+		stopRequested = true;
+		sock.close();
 	}
 
 }

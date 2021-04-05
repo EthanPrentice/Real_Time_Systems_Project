@@ -2,17 +2,16 @@ package test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.time.LocalTime;
-
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import src.Elevator;
 import src.Floor;
 import src.Scheduler;
-import src.adt.ButtonDirection;
 import src.adt.message.FloorRequest;
 import util.Config;
+import util.Log;
 
 /**
  * Tests the floor's abilities to parse data from a text file, receive elevator data from the scheduler and
@@ -34,16 +33,31 @@ class FloorTest {
 	
 	@BeforeEach
 	void setup() {
+		Log.setLevel(Log.Level.VERBOSE);
+		
 		Config.USE_ZERO_FLOOR_TIME = true;
+		Config.CLOSE_UI_ON_FINISH = true;
+		Config.EXPORT_MEASUREMENTS = false;
+		
 		scheduler = new Scheduler();
 		elevator = new Elevator();
 		floor = new Floor();
+		floor.setFilePath("test_data_noerror.txt");
 		
 		schedulerThread = new Thread(scheduler, "Scheduler");
 		floorThread = new Thread(floor, "Floor");
 		elevatorThread = new Thread(elevator, "Elevator");
-		
 	}
+	
+	
+	@AfterEach
+	void cleanup() {
+		Log.setLevel(Log.Level.VERBOSE);
+		
+		scheduler.requestStop();
+		elevator.forceStop();
+	}
+	
 	
 	/**
 	 * Tests the Floor's ability to read in event data and parse it
@@ -66,13 +80,7 @@ class FloorTest {
 		floorThread.start();
 		
 		// wait for threads to end
-		while(floorThread.isAlive()) {
-			try {
-				Thread.sleep(100L);
-			} catch(InterruptedException e) {
-				fail("Thread interrupted!");
-			}
-		}
+		joinThreads();
 		
 		FloorRequest testEvent = FloorRequest.parseFromString("00:00:27.0 3 UP 7 0"); //The expected last parsed Event object
 		FloorRequest getEvent = floor.getLastParsed();
@@ -103,13 +111,7 @@ class FloorTest {
 		
 		
 		// wait for threads to end
-		while(floorThread.isAlive() || schedulerThread.isAlive() || elevatorThread.isAlive()) {
-			try {
-				Thread.sleep(100L);
-			} catch(InterruptedException e) {
-				fail("Thread interrupted!");
-			}
-		}
+		joinThreads();
 		
 
 		assertEquals(floor.getLastFloor(), 8); //The expected last floor 5
@@ -138,13 +140,7 @@ class FloorTest {
 		 floorThread.start();
 				
 		 // wait for threads to end
-		 while(floorThread.isAlive()) {
-			 try {
-				 Thread.sleep(100L);
-			 } catch(InterruptedException e) {
-				 fail("Thread interrupted!");
-			 }
-		 }
+		 joinThreads();
 				
 		 //Expected last event
 		 FloorRequest testEvent = FloorRequest.parseFromString("00:00:27.0 3 UP 7 0");
@@ -153,5 +149,15 @@ class FloorTest {
 				
 		 //Test the entire scheduler event queue
 		 assertEquals(getEvent, testEvent);
+	}
+	 
+	 
+	private void joinThreads() {
+		 try {
+			schedulerThread.join();
+			floorThread.join();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 	}
 }

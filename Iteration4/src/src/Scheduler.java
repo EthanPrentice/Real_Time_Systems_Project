@@ -9,6 +9,7 @@ import src.adt.*;
 import src.adt.message.FloorRequest;
 import src.adt.message.StopRequest;
 import src.ui.UIManager;
+import util.Config;
 import util.Log;
 
 /**
@@ -91,7 +92,8 @@ public class Scheduler implements Runnable {
 						// Exit once the message handler has stopped
 						try {
 							msgHandlerThread.join();
-							return;
+							stopRequested = true;
+							break;
 						} catch (InterruptedException e) {
 							// TODO Auto-generated catch block
 							e.printStackTrace();
@@ -105,6 +107,10 @@ public class Scheduler implements Runnable {
 		}
 		
 		Log.log("EXITING", Log.Level.DEBUG);
+		
+		if (Config.CLOSE_UI_ON_FINISH) {
+			uiManager.close();
+		}
 	}
 	
 	
@@ -480,6 +486,13 @@ public class Scheduler implements Runnable {
 				e.printStackTrace();
 			}
 		}
+	}
+	
+	
+	public synchronized void requestStop() {
+		stopRequested = true;
+		msgHandler.requestStop();
+		notifyAll();
 	}
 	
 	

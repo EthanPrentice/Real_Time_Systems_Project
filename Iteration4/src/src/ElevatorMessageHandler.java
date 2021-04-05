@@ -31,10 +31,7 @@ public class ElevatorMessageHandler extends MessageHandler {
 	}
 	
 	public void init() {
-		try {
-			// Construct & bind DatagramSocket to any available port
-			Log.log("Opened socket on port: " + sock.getLocalPort());
-			
+		try {			
 			register(true);			
 			
 		} catch (IOException e) {

@@ -1,6 +1,7 @@
 package src.ui;
 
 import java.awt.*;
+import java.awt.event.WindowEvent;
 import java.util.ArrayList;
 import java.util.HashMap;
 import javax.swing.*;
@@ -39,25 +40,12 @@ public class UIManager {
 		elevatorIdMap.put(elevatorId, newPanel);
 		updateElevatorStatus(elevatorId, status);
 		
-		
-		
-		if (elevatorIdMap.size() != 1) {
-			Rectangle currBounds = frame.getBounds();
-			currBounds.width += COLUMN_WIDTH; // add width of new column
-			currBounds.height = Math.max(currBounds.height, newPanel.getHeight());
-			frame.setPreferredSize(new Dimension(currBounds.width, currBounds.height));
-		}
-		else {
+		if (elevatorIdMap.size() == 1) {
 			frame.remove(emptyPanel);
 		}
 		
 		frame.add(newPanel);
-		
 		frame.pack();
-		
-		frame.invalidate();
-		frame.validate();
-		frame.repaint();
 	}
 	
 	
@@ -120,11 +108,20 @@ public class UIManager {
 		JFrame frame = new JFrame();
 		frame.setBounds(0, 0, COLUMN_WIDTH, 720);
 		frame.getContentPane().setLayout(new BoxLayout(frame.getContentPane(), BoxLayout.X_AXIS));
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		frame.setResizable(false);
 		frame.setTitle("Elevator System Display");
 		
 		return frame;
 	}
 
+	
+	public void close() {
+		SwingUtilities.invokeLater(() -> {
+			frame.dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));
+			frame.setVisible(false);
+			frame.dispose();
+		});
+	}
+	
 }

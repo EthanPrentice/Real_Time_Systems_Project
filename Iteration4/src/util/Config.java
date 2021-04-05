@@ -7,7 +7,7 @@ package util;
  * Configures options for the program
  */
 public class Config {
-	public static boolean USE_ZERO_FLOOR_TIME = false;
+	public static boolean USE_ZERO_FLOOR_TIME = true;
 	public final static int NUM_FLOORS = 22;
 	
 	public static boolean EXPORT_MEASUREMENTS = true;
@@ -21,4 +21,6 @@ public class Config {
 	public final static long DOOR_ERR_TIMER_MS = (long) (LOAD_TIME_MS * 1.4);    // more variance, higher modifier
 	
 	public final static boolean SHOW_UI = true;
+	public final static boolean UI_RESIZABLE = false;
+	public static boolean CLOSE_UI_ON_FINISH = false; // should be true for testing
 }

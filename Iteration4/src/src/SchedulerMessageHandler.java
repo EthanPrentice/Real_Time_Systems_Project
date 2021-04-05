@@ -134,12 +134,14 @@ public class SchedulerMessageHandler extends MessageHandler {
 		Log.log("EXITING", Log.Level.DEBUG);
 	}
 	
-	public void requestStop() {
+	public synchronized void requestStop() {
+		if (stopRequested) {
+			return;
+		}
 		stopRequested = true;
 		if (activeElevators <= 0) {
 			// All elevators have exited.  This means we can shutdown the Floor as well
 			requestFloorStop();
-			
 			sock.close();
 		}
 	}
@@ -148,7 +150,7 @@ public class SchedulerMessageHandler extends MessageHandler {
 	 * Requests that the Floor stop
 	 * This is called when the Scheduler knows it will not be sending any more info to the Floor
 	 */
-	private void requestFloorStop() {
+	private synchronized void requestFloorStop() {
 		int floorPort = scheduler.getFloorPort();
 		if (floorPort != 0) {
 			send(new StopRequest(), floorPort);

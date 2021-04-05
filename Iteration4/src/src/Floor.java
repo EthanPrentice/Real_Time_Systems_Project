@@ -49,6 +49,8 @@ public class Floor implements Runnable {
     
     private MeasureWriter measureWriter = null;
     
+    private boolean stopRequested = false;
+    
 	
 	public Floor() {
 		requestQueue = new PriorityQueue<FloorRequest>(requestTimeComparator);
@@ -82,7 +84,7 @@ public class Floor implements Runnable {
 		
 		// hard code file location for now
 		if (filePath == null) {
-			File file = new File("res/test_data_22_floors.txt");
+			File file = new File("res/test_data.txt");
 			readFromFile(file);
 		}
 		else {
@@ -103,9 +105,9 @@ public class Floor implements Runnable {
 		long completedInMs = System.currentTimeMillis() - startMs;
 		Log.log("Requests were completed in " + completedInMs + "ms", Log.Level.INFO);
 		
-		measureWriter.writeTotalTime(completedInMs);
 		
 		if (Config.EXPORT_MEASUREMENTS) {
+			measureWriter.writeTotalTime(completedInMs);
 			measureWriter.close();
 		}
 		
@@ -146,7 +148,13 @@ public class Floor implements Runnable {
 						Thread.sleep(50L);
 					}
 				} catch (InterruptedException e) {
-					System.err.print(e.getMessage());
+					if (!stopRequested) {
+						e.printStackTrace();
+					}
+					else {
+						msgHandler.forceStop();
+						return;
+					}
 				}
 			}
 			
@@ -283,6 +291,11 @@ public class Floor implements Runnable {
 	
 	public void setFilePath(String path) {
 		this.filePath = path;
+	}
+	
+	
+	public void requestStop() {
+		stopRequested = true;
 	}
 	
 	

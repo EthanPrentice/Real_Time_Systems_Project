@@ -5,6 +5,7 @@ package test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -14,6 +15,7 @@ import src.Scheduler;
 import src.adt.ElevatorState;
 import src.adt.message.FloorRequest;
 import util.Config;
+import util.Log;
 
 /**
  * Tests all functions and paths of the scheduler state machine. Implements integration testing
@@ -34,15 +36,31 @@ class SchedulerTest {
 
 	@BeforeEach
 	void setup() {
+		Log.setLevel(Log.Level.VERBOSE);
+		
 		Config.USE_ZERO_FLOOR_TIME = true;
+		Config.CLOSE_UI_ON_FINISH = true;
+		Config.EXPORT_MEASUREMENTS = false;
+		
 		scheduler = new Scheduler();
 		elevator = new Elevator();
 		floor = new Floor();
+		floor.setFilePath("test_data_noerror.txt");
 
 		schedulerThread = new Thread(scheduler, "Scheduler");
 		floorThread = new Thread(floor, "Floor");
 		elevatorThread = new Thread(elevator, "Elevator 1");
 	}
+	
+	
+	@AfterEach
+	void cleanup() {
+		Log.setLevel(Log.Level.VERBOSE);
+		
+		scheduler.requestStop();
+		elevator.forceStop();
+	}
+	
 
 	/**
 	 * Test the event data received from the floor
