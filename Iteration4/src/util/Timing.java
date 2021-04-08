@@ -9,6 +9,7 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Scanner;
 
 import src.Elevator;
 import src.Floor;
@@ -112,12 +113,32 @@ public class Timing {
 		int minElevators = 2;
 		int maxElevators = 4;
 		ArrayList<MeasureWriter> writers = new ArrayList<>();
+		boolean overwriteFiles = false;
 		for (int i = 0; i <= (maxElevators - minElevators); ++i) {
 			String filename = String.format("%d_elevators_timing.csv", minElevators + i);
 			
-			// delete file if it already exists
+			// if files exist, throw exception
 			File file = new File(Config.MEASURE_PATH, filename);
-			file.delete();
+			
+			
+			if (file.exists()) {
+				if (overwriteFiles) {
+					file.delete();
+				}
+				else {
+					Scanner scanner = new Scanner(System.in);
+					System.out.print("Output files already exist!!  Would you like to overwrite them? (y/n) ");
+					String input = scanner.next();
+					scanner.close();
+					
+					if (input.toLowerCase().equals("y")) {
+						overwriteFiles = true;
+						file.delete();
+					} else {
+						throw new IllegalStateException("Cannot overwrite files.");
+					}
+				}
+			}
 			
 			writers.add(new MeasureWriter(filename));
 		}
