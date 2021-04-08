@@ -54,8 +54,10 @@ public class SchedulerMessageHandler extends MessageHandler {
 				// sent from elevator to register port with scheduler
 				if (received instanceof RegisterElevatorRequest) {
 					RegisterElevatorRequest req = (RegisterElevatorRequest) received;
+					send(new MessageAck(true), received.getSrcPort());
 					scheduler.registerElevator(req.getElevatorId(), req.getStatus(), req.getSrcPort());
 					++activeElevators;
+					continue;
 				}
 				// sent from elevator to unregister port with scheduler
 				else if (received instanceof UnregisterElevatorRequest) {
