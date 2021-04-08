@@ -1,0 +1,35 @@
+		//t.run2("res/timing_100.txt");
+		t.run2("res/timing_1.txt");
+		t.run2("res/timing_2.txt");
+		t.run2("res/timing_3.txt");
+		t.run2("res/timing_4.txt");
+		t.run2("res/timing_5.txt");
+		t.run2("res/timing_6.txt");
+		t.run2("res/timing_7.txt");
+		t.run2("res/timing_8.txt");
+		t.run2("res/timing_9.txt");
+		t.run2("res/timing_10.txt");
+		
+		//t.run3("res/timing_100.txt");
+		t.run3("res/timing_1.txt");
+		t.run3("res/timing_2.txt");
+		t.run3("res/timing_3.txt");
+		t.run3("res/timing_4.txt");
+		t.run3("res/timing_5.txt");
+		t.run3("res/timing_6.txt");
+		t.run3("res/timing_7.txt");
+		t.run3("res/timing_8.txt");
+		t.run3("res/timing_9.txt");
+		t.run3("res/timing_10.txt");
+		
+		//t.run4("res/timing_100.txt");
+		t.run4("res/timing_1.txt");
+		t.run4("res/timing_2.txt");
+		t.run4("res/timing_3.txt");
+		t.run4("res/timing_4.txt");
+		t.run4("res/timing_5.txt");
+		t.run4("res/timing_6.txt");
+		t.run4("res/timing_7.txt");
+		t.run4("res/timing_8.txt");
+		t.run4("res/timing_9.txt");
+		t.run4("res/timing_10.txt");
