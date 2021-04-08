@@ -28,6 +28,11 @@ public class MeasureWriter {
 		writeHeaders();
 	}
 	
+	public MeasureWriter(String filename) {
+		this(new File(Config.MEASURE_PATH, filename));
+		writeHeaders();
+	}
+	
 	public MeasureWriter(File file) {
 		try {
 			if (!file.exists()) {

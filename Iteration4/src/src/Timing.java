@@ -107,7 +107,19 @@ public class Timing {
 		Timing t = new Timing();
 		
 		File inFile;
-		MeasureWriter mw = new MeasureWriter();
+		
+		int minElevators = 2;
+		int maxElevators = 4;
+		ArrayList<MeasureWriter> writers = new ArrayList<>();
+		for (int i = 0; i <= (maxElevators - minElevators); ++i) {
+			String filename = String.format("%d_elevators_timing.csv", minElevators + i);
+			
+			// delete file if it already exists
+			File file = new File(Config.MEASURE_PATH, filename);
+			file.delete();
+			
+			writers.add(new MeasureWriter(filename));
+		}
 		
 		int samples = 30;
 		int inputLength = 10;
@@ -120,7 +132,10 @@ public class Timing {
 				break;
 			}
 			
-			t.timeElevators(inFile, mw, 4);
+			for (int j = 0; j <= (maxElevators - minElevators); ++j) {
+				t.timeElevators(inFile, writers.get(j), minElevators + j);
+			}
+			
 		}
 	}
 
