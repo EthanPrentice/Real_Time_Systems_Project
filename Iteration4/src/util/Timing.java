@@ -1,4 +1,4 @@
-package src;
+package util;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -10,9 +10,10 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
 
+import src.Elevator;
+import src.Floor;
+import src.Scheduler;
 import src.adt.ButtonDirection;
-import util.Config;
-import util.MeasureWriter;
 
 
 public class Timing {

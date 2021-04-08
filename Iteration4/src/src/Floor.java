@@ -31,7 +31,7 @@ public class Floor implements Runnable {
 	private int lastFloor;
 	
 	// path to read events from
-	private File inFile = new File("res/timing_21.txt");
+	private File inFile = new File("res/test_data.txt");
 	
 	private long startMs = 0;
 	
