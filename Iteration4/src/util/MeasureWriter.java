@@ -68,6 +68,9 @@ public class MeasureWriter {
 		pw.println(sj.toString());
 	}
 	
+	public void flush() {
+		pw.flush();
+	}
 	
 	public void close() {
 		pw.close();

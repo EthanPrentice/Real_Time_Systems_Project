@@ -7,7 +7,7 @@ package util;
  * Configures options for the program
  */
 public class Config {
-	public static boolean USE_ZERO_FLOOR_TIME = true;
+	public static boolean USE_ZERO_FLOOR_TIME = false;
 	public final static int NUM_FLOORS = 22;
 	
 	public static boolean EXPORT_MEASUREMENTS = true;

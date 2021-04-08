@@ -1,186 +1,127 @@
 package src;
 
-import static org.junit.jupiter.api.Assertions.fail;
-
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.text.SimpleDateFormat;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Date;
 
+import src.adt.ButtonDirection;
 import util.Config;
 import util.MeasureWriter;
 
+
 public class Timing {
 	
-	private Floor floor;
-	private Elevator elevator1;
-	private Elevator elevator2;
-	private Elevator elevator3;
-	private Elevator elevator4;
-	private Scheduler scheduler;
+	private static final SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy_HH-mm-ss");
+	
+	
 	private Thread floorThread;
-	private Thread elevatorThread1;
-	private Thread elevatorThread2;
-	private Thread elevatorThread3;
-	private Thread elevatorThread4;
 	private Thread schedulerThread;
-	private MeasureWriter file;
-	private String data;
 	
-	public Timing() {
+	
+	public void timeElevators(File inFile, MeasureWriter measureWriter, int elevatorCount) {
+		Config.USE_ZERO_FLOOR_TIME = true;
+		Config.CLOSE_UI_ON_FINISH = true;
 		
-	}
-	
-	public void run2(String data){
-			file = new MeasureWriter();
-			this.data = data;
-			Config.USE_ZERO_FLOOR_TIME = false;
-			scheduler = new Scheduler();
-			elevator1 = new Elevator();
-			elevator2 = new Elevator();
-			floor = new Floor(file);
+		Scheduler scheduler = new Scheduler();
+		Floor floor = new Floor(measureWriter);
 
-			schedulerThread = new Thread(scheduler, "Scheduler");
-			elevatorThread1 = new Thread(elevator1, "Elevator 1");
-			elevatorThread2 = new Thread(elevator2, "Elevator 2");
-			floorThread = new Thread(floor, "Floor");
-			
-			floor.setFilePath(data);
-			
-			//Run all components of the system for integration testing
-			schedulerThread.start();
-			scheduler.waitUntilCanRegister();
-			elevatorThread1.start();
-			elevatorThread2.start();
-			floorThread.start();
-			
-			// wait for threads to end
-			while(floorThread.isAlive() || schedulerThread.isAlive() || elevatorThread1.isAlive() || elevatorThread2.isAlive()) {
-				try {
-					Thread.sleep(100L);
-				} catch(InterruptedException e) {
-					fail("Thread interrupted!");
-				}
-			}
-	}
-	
-	
-	public void run3(String data){
-		file = new MeasureWriter();
-		this.data = data;
-		Config.USE_ZERO_FLOOR_TIME = false;
-		scheduler = new Scheduler();
-		elevator1 = new Elevator();
-		elevator2 = new Elevator();
-		elevator3 = new Elevator();
-		floor = new Floor(file);
-
+		// Instantiate threads
 		schedulerThread = new Thread(scheduler, "Scheduler");
-		elevatorThread1 = new Thread(elevator1, "Elevator 1");
-		elevatorThread2 = new Thread(elevator2, "Elevator 2");
-		elevatorThread3 = new Thread(elevator3, "Elevator 3");
 		floorThread = new Thread(floor, "Floor");
+		ArrayList<Thread> elevatorThreads = new ArrayList<>();
+		for (int i = 0; i < elevatorCount; ++i) {
+			elevatorThreads.add(new Thread(new Elevator()));
+		}
 		
-		floor.setFilePath(data);
+		floor.setFile(inFile);
 		
-		//Run all components of the system for integration testing
 		schedulerThread.start();
 		scheduler.waitUntilCanRegister();
-		elevatorThread1.start();
-		elevatorThread2.start();
-		elevatorThread3.start();
+		for (Thread t : elevatorThreads) {
+			t.start();
+		}
 		floorThread.start();
 		
-		// wait for threads to end
-		while(floorThread.isAlive() || schedulerThread.isAlive() || elevatorThread1.isAlive() || elevatorThread2.isAlive() || elevatorThread3.isAlive()) {
-			try {
-				Thread.sleep(100L);
-			} catch(InterruptedException e) {
-				fail("Thread interrupted!");
-			}
-		}
+		joinThreads();
 	}
 	
-	public void run4(String data){
-		file = new MeasureWriter();
-		this.data = data;
-		Config.USE_ZERO_FLOOR_TIME = false;
-		scheduler = new Scheduler();
-		elevator1 = new Elevator();
-		elevator2 = new Elevator();
-		elevator3 = new Elevator();
-		elevator4 = new Elevator();
-		floor = new Floor(file);
-
-		schedulerThread = new Thread(scheduler, "Scheduler");
-		elevatorThread1 = new Thread(elevator1, "Elevator 1");
-		elevatorThread2 = new Thread(elevator2, "Elevator 2");
-		elevatorThread3 = new Thread(elevator3, "Elevator 3");
-		elevatorThread4 = new Thread(elevator4, "Elevator 4");
-		floorThread = new Thread(floor, "Floor");
-		
-		floor.setFilePath(data);
-		
-		//Run all components of the system for integration testing
-		schedulerThread.start();
-		scheduler.waitUntilCanRegister();
-		elevatorThread1.start();
-		elevatorThread2.start();
-		elevatorThread3.start();
-		elevatorThread4.start();
-		floorThread.start();
-		
-		// wait for threads to end
-		while(floorThread.isAlive() || schedulerThread.isAlive() || elevatorThread1.isAlive() || elevatorThread2.isAlive() || elevatorThread3.isAlive() || elevatorThread4.isAlive()) {
-			try {
-				Thread.sleep(100L);
-			} catch(InterruptedException e) {
-				fail("Thread interrupted!");
-			}
+	
+	private File getRandomInputFile(int length) {
+		File tmpFile;
+		PrintWriter pw;
+		try {
+			tmpFile = File.createTempFile(getTempFilename(), null);
+			FileOutputStream oStream = new FileOutputStream(tmpFile);
+			pw = new PrintWriter(oStream);
+		} catch (IOException e) {
+			e.printStackTrace();
+			return null;
 		}
-	}
-	public void makeRandom() {
+		
 		int b;
-		String dir = "";
 		int sec = 0;
-		for (int i = 0; i < 10; i++) {
-			sec = sec + (int)Math.floor(Math.random()*(15-1+1)+1);
+		for (int i = 0; i < length; i++) {
+			sec += (int) (Math.random()*15 + 1);
 			
-			int h = sec / 3600;
-			int secleft = sec - h * 3600;
-			int m = secleft / 60;
-			int seconds = secleft - m * 60;
+			LocalTime reqTime = LocalTime.ofSecondOfDay(sec);
+			String formattedTime = reqTime.format(DateTimeFormatter.ofPattern("HH:mm:ss"));
 			
-			String formattedTime = "";
-			
-			if (h<10)
-				formattedTime += "0";
-			formattedTime += h + ":";
-			
-			if (m < 10)
-				formattedTime += "0";
-			formattedTime += m + ":";
-			
-			if (seconds < 10)
-				formattedTime += "0";
-			formattedTime += seconds;
-			
-			int a = (int)Math.floor(Math.random()*(22-1+1)+1);
+			int a = (int) (Math.random()*Config.NUM_FLOORS + 1);
 			do {
-				b = (int)Math.floor(Math.random()*(22-1+1)+1);
-			}while (a == b);
+				b = (int) (Math.random()*Config.NUM_FLOORS + 1);
+			} while (a == b);
 			
-			if (a > b) {
-				dir = "Down";
-			}
-			else if (a < b) {
-				dir = "Up";
-			}
-			System.out.println(formattedTime + " " + a + " " + dir + " " + b + " " + 0);
+			String dir = (a > b ? ButtonDirection.DOWN : ButtonDirection.UP).name();
+			
+			pw.println(String.format("%s %d %s %d %d", formattedTime, a, dir, b, 0));
 		}
 		
+		pw.close();
+		
+		return tmpFile;
 	}
+	
+	
+	private void joinThreads() {
+		 try {
+			schedulerThread.join();
+			floorThread.join();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	
+	private static String getTempFilename() {
+		return sdf.format(new Date()) + "_generated_input_sysc3303_project.txt";
+	}
+	
 	
 	public static void main(String[] args) {
 		Timing t = new Timing();
-		 t.run4("res/test_data_22_floors.txt");
+		
+		File inFile;
+		MeasureWriter mw = new MeasureWriter();
+		
+		int samples = 30;
+		int inputLength = 10;
+		
+		for (int i = 0; i < samples; ++i) {
+			inFile = t.getRandomInputFile(inputLength);
+			
+			// in-case of error generating input
+			if (inFile == null) {
+				break;
+			}
+			
+			t.timeElevators(inFile, mw, 4);
+		}
 	}
 
 }

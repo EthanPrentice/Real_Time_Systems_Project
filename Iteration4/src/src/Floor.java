@@ -31,7 +31,7 @@ public class Floor implements Runnable {
 	private int lastFloor;
 	
 	// path to read events from
-	private String filePath;
+	private File inFile = new File("res/timing_21.txt");
 	
 	private long startMs = 0;
 	
@@ -82,15 +82,8 @@ public class Floor implements Runnable {
 		
 		startMs = System.currentTimeMillis();
 		
-		// hard code file location for now
-		if (filePath == null) {
-			File file = new File("res/test_data.txt");
-			readFromFile(file);
-		}
-		else {
-			File file = new File(filePath);
-			readFromFile(file);
-		}
+		// read requests into floor from File
+		readFromFile(inFile);
 		
 		// send events read from file to the Scheduler
 		sendRequestsToScheduler();
@@ -108,7 +101,7 @@ public class Floor implements Runnable {
 		
 		if (Config.EXPORT_MEASUREMENTS) {
 			measureWriter.writeTotalTime(completedInMs);
-			measureWriter.close();
+			measureWriter.flush();
 		}
 		
 		Log.log("EXITING", Log.Level.DEBUG);
@@ -290,7 +283,11 @@ public class Floor implements Runnable {
 	}
 	
 	public void setFilePath(String path) {
-		this.filePath = path;
+		inFile = new File(path);
+	}
+	
+	public void setFile(File file) {
+		inFile = file;
 	}
 	
 	

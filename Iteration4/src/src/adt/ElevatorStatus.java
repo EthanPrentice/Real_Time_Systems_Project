@@ -33,7 +33,7 @@ public class ElevatorStatus {
 	
 	private int getMaxOccupancy(int minFloor, int maxFloor) {
 		int occupancy = 0;
-		for (int i = minFloor; i <= maxFloor; ++i) {
+		for (int i = minFloor - 1; i < maxFloor; ++i) {
 			occupancy = Integer.max(occupancy, floorOccupancy[i]);
 		}
 		return occupancy;
