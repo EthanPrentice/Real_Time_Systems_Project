@@ -16,7 +16,12 @@ import src.Floor;
 import src.Scheduler;
 import src.adt.ButtonDirection;
 
-
+/**
+ * Written for SYSC3303 - Group 6 - Iteration 5 @ Carleton University
+ * @author Baillie Noell (101066676)
+ * @edit Ethan Prentice (101070194)
+ * 
+ */
 public class Timing {
 	
 	private static final SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy_HH-mm-ss");
