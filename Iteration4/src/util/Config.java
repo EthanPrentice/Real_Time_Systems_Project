@@ -14,7 +14,7 @@ public class Config {
 	public static String MEASURE_PATH = "./out/";
 	
 	
-	public final static long FLOOR_TIME_MS = 4_750L;
+	public final static long FLOOR_TIME_MS = 9_500L;
 	public final static long LOAD_TIME_MS = 9_350L;
 	
 	public final static long FLOOR_ERR_TIMER_MS = (long) (FLOOR_TIME_MS * 1.2);  // shouldn't have that much variance
