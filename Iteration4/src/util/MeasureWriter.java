@@ -35,6 +35,10 @@ public class MeasureWriter {
 	
 	public MeasureWriter(File file) {
 		try {
+			File directory = file.getParentFile();
+			if (!directory.exists()) {
+				directory.mkdir();
+			}
 			if (!file.exists()) {
 				file.createNewFile();
 			}

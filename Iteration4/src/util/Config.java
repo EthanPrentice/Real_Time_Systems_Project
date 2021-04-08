@@ -14,8 +14,8 @@ public class Config {
 	public static String MEASURE_PATH = "./out/";
 	
 	
-	public final static long FLOOR_TIME_MS = 9_500L;
-	public final static long LOAD_TIME_MS = 9_350L;
+	public final static long FLOOR_TIME_MS = 9_500L / 2;
+	public final static long LOAD_TIME_MS = 9_350L / 2;
 	
 	public final static long FLOOR_ERR_TIMER_MS = (long) (FLOOR_TIME_MS * 1.2);  // shouldn't have that much variance
 	public final static long DOOR_ERR_TIMER_MS = (long) (LOAD_TIME_MS * 1.4);    // more variance, higher modifier
