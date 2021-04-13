@@ -79,7 +79,7 @@ public class CompletedFloorRequest extends Message {
 		
 		FloorRequest req = FloorRequest.parse(floorReqBytes, 0);
 		
-		return new CompletedFloorRequest(elevatorId, req);
+		return new CompletedFloorRequest(elevatorId, req, srcPort);
 	}
 	
 }
